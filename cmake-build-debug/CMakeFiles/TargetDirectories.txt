@@ -1,0 +1,3 @@
+C:/Users/Lenovo/Documents/GitHub/Libtensor_by_Yang/cmake-build-debug/CMakeFiles/Libtensor_by_Yang.dir
+C:/Users/Lenovo/Documents/GitHub/Libtensor_by_Yang/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Lenovo/Documents/GitHub/Libtensor_by_Yang/cmake-build-debug/CMakeFiles/rebuild_cache.dir
