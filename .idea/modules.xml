@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Libtensor_by_Yang.iml" filepath="$PROJECT_DIR$/.idea/Libtensor_by_Yang.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Libtensor_by_Yang-main.iml" filepath="$PROJECT_DIR$/.idea/Libtensor_by_Yang-main.iml" />
     </modules>
   </component>
 </project>

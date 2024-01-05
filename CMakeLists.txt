@@ -6,5 +6,5 @@ set(CMAKE_CXX_STANDARD 14)
 include_directories(.)
 
 add_executable(Libtensor_by_Yang
-        tensor.cpp
-        tensor.h)
+        Libtensor_by_Yang-main/tensor.h
+        Libtensor_by_Yang-main/tensor.cpp)
