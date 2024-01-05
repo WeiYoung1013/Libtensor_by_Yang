@@ -7,6 +7,9 @@
 using namespace std;
 
 namespace ts {
+
+
+
     template <typename T>
     Tensor<T> Tensor<T>::tensor(const std::vector<std::vector<T>>& initList){
         return Tensor<T>(initList);
