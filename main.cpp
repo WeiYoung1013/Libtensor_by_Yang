@@ -11,7 +11,8 @@
 #include "src/tensor.h"
 
 int main() {
-
+ios::sync_with_stdio(false);
+cin.tie(nullptr);cout.tie(nullptr);
 #ifdef _WIN32
     //SetConsoleOutputCP(CP_UTF8);
 #endif // _WIN32
