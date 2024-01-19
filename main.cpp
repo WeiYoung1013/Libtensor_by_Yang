@@ -21,13 +21,13 @@ int main() {
 
     // 1. 生成 2 * 2 张量
     std::cout << "-----------------[1.1.1] create 2 * 2-----------------" << std::endl;
-    Tensor* t8s3g = new Tensor({-0.5792, -0.1372,   0.5962,  1.2097}, {2,2} );
+    Tensor<float>* t8s3g = new Tensor<float>({-0.5792, -0.1372,   0.5962,  1.2097}, {2,2} );
     t8s3g->print();
     delete t8s3g;
 
-    // 2. 生成 2 * 3 * 3 张量
+   // 2. 生成 2 * 3 * 3 张量
     std::cout << "-----------------[1.1.2] create 2 * 3 * 3-----------------" << std::endl;
-    Tensor* t63g0 = new Tensor({-0.5792, -0.1372,  -0.5792, -0.1372, 0.5962,  1.2097,
+    Tensor<float>* t63g0 = new Tensor<float>({-0.5792, -0.1372,  -0.5792, -0.1372, 0.5962,  1.2097,
                                -0.5792, -0.1372,  -0.5792, -0.1372, 0.5962,  1.2097,
                                -0.5792, -0.1372,  -0.5792, -0.1372, 0.5962,  1.2097}, {2, 3, 3} );
     t63g0->print();
@@ -38,21 +38,23 @@ int main() {
     //  3 * 2 * 2 随机 张量
     std::cout << "-----------------[1.2.1] create 3 * 2 * 2 rand-----------------" << std::endl;
 
-    Tensor* tgzxg = Tensor::rand({3, 2, 2}, 5.0);
+    Tensor<double>* tgzxg = Tensor<double>::rand({3, 2, 2}, 5.0);
+    Tensor<int>* tgzg = Tensor<int>::rand({1, 1, 3}, 5.0);
     tgzxg->print();
+    tgzg->print();
     delete tgzxg;
 
 
 
     // 3. 4 * 2 * 2 全0 张量
     std::cout << "-----------------[1.3.1] create 4 * 2 * 2 zero-----------------" << std::endl;
-    Tensor* temno = new Tensor({0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    Tensor<float>* temno = new Tensor<float>({0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                               }, {4, 2, 3});
-    Tensor* tdzja = Tensor::zeros({4, 2, 3});
+                               }, {4, 2, 2});
+    Tensor<float>* tdzja = Tensor<float>::zeros({4, 2, 2});
 
     temno->print();
-    delete t63g0;
+    delete temno;
 
     tdzja->print();
     delete tdzja;
@@ -60,39 +62,39 @@ int main() {
     // [1.3.6] 2, 2, 2 全1 张量
     std::cout << "-----------------[1.3.2] create 2, 2, 2 full 1 ----------------" << std::endl;
 
-    Tensor* tlcj6 = Tensor::ones({2, 2, 2});
+    Tensor<int>* tlcj6 = Tensor<int>::ones({2, 2, 2});
     tlcj6->print();
     delete tlcj6;
 
     // [1.3.6] 2, 2, 2 full5 张量
     std::cout << "-----------------[1.3.6] create 2, 2, 2 full 5 ----------------" << std::endl;
 
-    Tensor* tbwsq = Tensor::full({2, 2, 2}, 5);
+    Tensor<float>* tbwsq = Tensor<float>::full({2, 2, 2}, 5);
     tbwsq->print();
     delete tbwsq;
 
     //  [1.4.1] create 4 * 4  eye
     std::cout << "-----------------[1.4.1] create 4 * 4  eye-----------------" << std::endl;
-    Tensor* tm4pf = Tensor::eye(4);
+    Tensor<float>* tm4pf = Tensor<float>::eye(4);
     tm4pf->print();
     delete tm4pf;
 
     //  2.1 index and select
     std::cout << "-----------------[2.1] index-----------------" << std::endl;
 
-    Tensor* tw109 = Tensor::rand({4, 6});
+    Tensor<double>* tw109 = Tensor<double>::rand({4, 6});
     tw109->print();
 
-    Tensor* tw1092 = tw109->select({"0", "2"});  // 取 (0,2) 的数据
+    Tensor<double>* tw1092 = tw109->select({"0", "2"});  // 取 (0,2) 的数据
     tw1092->print();
 
-    Tensor* tw1093 = tw109->select({"1", ":"});  // 取 第2行 的数据
+    Tensor<double>* tw1093 = tw109->select({"1", ":"});  // 取 第2行 的数据
     tw1093->print();
 
-    Tensor* tw1094 = tw109->select({":", "2"});  // 取 第3列 的数据
+    Tensor<double>* tw1094 = tw109->select({":", "2"});  // 取 第3列 的数据
     tw1094->print();
 
-    Tensor* tw1095 = tw109->select({"0:2", "0:2"}); // 取前2列的前2行
+    Tensor<double>* tw1095 = tw109->select({"0:2", "0:2"}); // 取前2列的前2行
     tw1095->print();
 
     delete tw109;
@@ -105,18 +107,18 @@ int main() {
     std::cout << "-----------------[2.2] join and tile-----------------" << std::endl;
 
     //Tensor* tsxfy = new Tensor({1, 2}, {2, 1});
-    Tensor* tsxfy = new Tensor({1, 1, 2, 2, 1, 1, 2, 2}, {4, 2});
+    Tensor<float>* tsxfy = new Tensor<float>({1, 1, 2, 2, 1, 1, 2, 2}, {4, 2});
     tsxfy->print();
 
     //
-    Tensor* tsxfy1 = Tensor::tile(tsxfy, {2, 2});
+    Tensor<float>* tsxfy1 = Tensor<float>::tile(tsxfy, {2, 2});
     tsxfy1->print();
 
-    Tensor* tsxfy2 = Tensor::full({2, 2, 2}, 2);
-    Tensor* tsxfy3 = Tensor::full({2, 2, 2}, 5);
+    Tensor<float>* tsxfy2 = Tensor<float>::full({2, 2, 2}, 2);
+    Tensor<float>* tsxfy3 = Tensor<float>::full({2, 2, 2}, 5);
 
     // 拼接
-    Tensor* tsxfy4 = Tensor::concat({tsxfy2, tsxfy3});
+    Tensor<float>* tsxfy4 = Tensor<float>::concat({tsxfy2, tsxfy3});
 
     tsxfy4->print();
 
@@ -129,15 +131,15 @@ int main() {
     // Mutating
     std::cout << "-----------------[2.3] Mutating-----------------" << std::endl;
 
-    Tensor* tlchy = Tensor::ones({4, 4});
+    Tensor<int>* tlchy = Tensor<int>::ones({4, 4});
     tlchy->set_select({"0", "2"}, 2.0f); // 把(0, 2) 设置 2
     tlchy->print();
 
-    Tensor* tlchy2 = Tensor::ones({4, 4});
+    Tensor<int>* tlchy2 = Tensor<int>::ones({4, 4});
     tlchy2->set_select({":", "2"}, 5.0f);  // 第3列设置为 5
     tlchy2->print();
 
-    Tensor* tlchy3 = Tensor::ones({4, 4});
+    Tensor<int>* tlchy3 = Tensor<int>::ones({4, 4});
     tlchy3->set_select({"0:1", "0:1"}, 7.0f);  // 前两行前两列 为 7
     tlchy3->print();
 
@@ -147,11 +149,11 @@ int main() {
 
     // permute
     std::cout << "-----------------[2.4] permute-----------------" << std::endl;
-    Tensor* tuzku = Tensor::rand({3, 4}, 1.0);
+    Tensor<int>* tuzku = Tensor<int>::rand({3, 4}, 7.0);
     tuzku->print();
 
     // 转置 二维矩阵 3,4 -> 4，3
-    Tensor *tuzku2 = Tensor::permute(tuzku, {1, 0});
+    Tensor<int> *tuzku2 = Tensor<int>::permute(tuzku, {1, 0});
     tuzku2->print();
     delete tuzku;
     delete tuzku2;
@@ -159,7 +161,7 @@ int main() {
     // view
     std::cout << "-----------------[2.5] view-----------------" << std::endl;
 
-    Tensor* tod8r = Tensor::rand({4, 3, 2}, 1.0);
+    Tensor<float>* tod8r = Tensor<float>::rand({4, 3, 2}, 1.0);
     tod8r->print( );
 
     // 维度变换 4*3*2 变换 2*2*2
@@ -172,15 +174,15 @@ int main() {
     // 3.1 add
     std::cout << "-----------------[3.1] add-----------------" << std::endl;
 
-    Tensor* t8qcv = Tensor::ones({3, 4});
-    Tensor* t8qcv2 = Tensor::ones({3, 4});
+    Tensor<float>* t8qcv = Tensor<float>::ones({3, 4});
+    Tensor<float>* t8qcv2 = Tensor<float>::ones({3, 4});
     // 矩阵对应元素相加
-    Tensor* t8qcv3 = Tensor::add(t8qcv, t8qcv2);
-    Tensor* t8qcv4 = Tensor::add(t8qcv3, t8qcv);
+    Tensor<float>* t8qcv3 = Tensor<float>::add(t8qcv, t8qcv2);
+    Tensor<float>* t8qcv4 = Tensor<float>::add(t8qcv3, t8qcv);
     t8qcv4->print();
 
-    Tensor qcv5 = Tensor({-0.1372, -0.1372,   0.2097,  1.2097}, {2,2} );
-    Tensor qcv6 = Tensor({-0.5792, -0.1372,   0.5962,  1.2097}, {2,2} );
+    Tensor <float>qcv5 = Tensor<float>({-0.1372, -0.1372,   0.2097,  1.2097}, {2,2} );
+    Tensor<float> qcv6 = Tensor<float>({-0.5792, -0.1372,   0.5962,  1.2097}, {2,2} );
     // 运算符重载
     Tensor qcv7 = qcv5 + qcv6;
     qcv7.print();
@@ -193,15 +195,15 @@ int main() {
     // 3.1 sub
     std::cout << "-----------------[3.1] sub-----------------" << std::endl;
 
-    Tensor* t8qcs = Tensor::ones({3, 4});
-    Tensor* t8qcs2 = Tensor::ones({3, 4});
+    Tensor<float>* t8qcs = Tensor<float>::ones({3, 4});
+    Tensor<float>* t8qcs2 = Tensor<float>::ones({3, 4});
     // 矩阵对应元素相加
-    Tensor* t8qcs3 = Tensor::sub(t8qcs, t8qcs2);
-    Tensor* t8qcs4 = Tensor::sub(t8qcs3, t8qcs);
+    Tensor<float>* t8qcs3 = Tensor<float>::sub(t8qcs, t8qcs2);
+    Tensor<float>* t8qcs4 = Tensor<float>::sub(t8qcs3, t8qcs);
     t8qcs4->print();
 
-    Tensor qcv25 = Tensor({-0.1372, -0.1372,   0.2097,  1.2097}, {2,2} );
-    Tensor qcv26 = Tensor({-0.5792, -0.1372,   0.5962,  1.2097}, {2,2} );
+    Tensor <float>qcv25 = Tensor<float>({-0.1372, -0.1372,   0.2097,  1.2097}, {2,2} );
+    Tensor <float>qcv26 = Tensor<float>({-0.5792, -0.1372,   0.5962,  1.2097}, {2,2} );
     // 运算符重载
     Tensor qcv27 = qcv25 + qcv26;
     qcv27.print();
@@ -214,17 +216,17 @@ int main() {
     // 3.1 mul
     std::cout << "-----------------[3.1] mul-----------------" << std::endl;
 
-    Tensor* t8qcsq = Tensor::rand({3, 4});
-    Tensor* t8qcsq2 = Tensor::rand({3, 4});
+    Tensor<float>* t8qcsq = Tensor<float>::rand({3, 4});
+    Tensor<float>* t8qcsq2 = Tensor<float>::rand({3, 4});
     // 矩阵对应元素相加
-    Tensor* t8qcsq3 = Tensor::mul(t8qcsq, t8qcsq2);
+    Tensor<float>* t8qcsq3 = Tensor<float>::mul(t8qcsq, t8qcsq2);
     //Tensor* t8qcsq4 = Tensor::mul(t8qcsq3, 6);
     t8qcsq3->print();
 
-    Tensor qcv2d5 = Tensor({-0.1372, -0.1372,   0.2097,  1.2097}, {2,2} );
-    Tensor qcv2d6 = Tensor({-0.5792, -0.1372,   0.5962,  1.2097}, {2,2} );
+    Tensor <float>qcv2d5 = Tensor<float>({-0.1372, -0.1372,   0.2097,  1.2097}, {2,2} );
+    Tensor<float> qcv2d6 = Tensor<float>({-0.5792, -0.1372,   0.5962,  1.2097}, {2,2} );
     // 运算符重载
-    Tensor qcv2d7 = qcv2d5 * qcv2d6;
+    Tensor <float>qcv2d7 = qcv2d5 * qcv2d6;
     qcv2d7.print();
 
     delete t8qcsq;
@@ -234,17 +236,17 @@ int main() {
     // 3.1 mul
     std::cout << "-----------------[3.1] div-----------------" << std::endl;
 
-    Tensor* t8qcaq = Tensor::rand({3, 4});
-    Tensor* t8qcaq2 = Tensor::rand({3, 4});
+    Tensor<double>* t8qcaq = Tensor<double>::rand({3, 4});
+    Tensor<double>* t8qcaq2 = Tensor<double>::rand({3, 4});
     // 矩阵对应元素相加
-    Tensor* t8qcaq3 = Tensor::div(t8qcaq, t8qcaq2);
+    Tensor<double>* t8qcaq3 = Tensor<double>::div(t8qcaq, t8qcaq2);
     //Tensor* t8qcaq4 = Tensor::div(t8qcaq3, t8qcaq4);
     t8qcaq3->print();
 
-    Tensor qcv2qd5 = Tensor({-0.1372, -0.1372,   0.2097,  1.2097}, {2,2} );
-    Tensor qcv2qd6 = Tensor({-0.5792, -0.1372,   0.5962,  1.2097}, {2,2} );
+    Tensor <double>qcv2qd5 = Tensor<double>({-0.1372, -0.1372,   0.2097,  1.2097}, {2,2} );
+    Tensor <double>qcv2qd6 = Tensor<double>({-0.5792, -0.1372,   0.5962,  1.2097}, {2,2} );
     // 运算符重载
-    Tensor qcv2qd7 = qcv2qd5 + qcv2qd6;
+    Tensor <double>qcv2qd7 = qcv2qd5 / qcv2qd6;
     qcv2d7.print();
 
     delete t8qcaq;
@@ -254,10 +256,10 @@ int main() {
 
     // 3.1.1 log
     std::cout << "-----------------[3.1.1] log-----------------" << std::endl;
-    Tensor* tmd45 = Tensor::rand({4, 4}, 5.0f);
+    Tensor<double>* tmd45 = Tensor<double>::rand({4, 4}, 5.0f);
     tmd45->print();
     // 元素对2取对数
-    Tensor* tmd451 = tmd45->log2();
+    Tensor<double>* tmd451 = tmd45->log2();
     tmd451->print();
     delete tmd45;
     delete tmd451;
@@ -267,15 +269,15 @@ int main() {
     // 3.2 sum
     std::cout << "-----------------[3.2] sum-----------------" << std::endl;
 
-    Tensor* ty369 = Tensor::rand({4, 4}, 5.0f);
+    Tensor<float>* ty369 = Tensor< float>::rand({4, 4}, 5.0f);
 
     ty369->print();
 
     // 每一行 第一个元素 相加
-    Tensor* ty3692 = ty369->sum({0}, false);
+    Tensor< float>* ty3692 = ty369->sum({0}, false);
 
     // 每一列 第一个元素 相加
-    Tensor* ty3693 = ty369->sum({1}, false);
+    Tensor< float>* ty3693 = ty369->sum({1}, false);
     ty3692->print();
     ty3693->print();
 
@@ -288,11 +290,11 @@ int main() {
 
     // 3.3 Comparison operations
     std::cout << "-----------------[3.3] Comparison operations-----------------" << std::endl;
-    Tensor* t8ac5 = new Tensor( {0, 0.2, 0, 0, 0, 0.2, 0.2, 0}, {2, 2, 2} );
-    Tensor* t8ac51 = Tensor::full(t8ac5->shape, 0.2);
+    Tensor<double>* t8ac5 = new Tensor<double>( {0, 0.2, 0, 0, 0, 0.2, 0.2, 0}, {2, 2, 2} );
+    Tensor<double>* t8ac51 = Tensor<double>::full(t8ac5->shape, 0.2);
 
     // 满足条件的相对位置为1 不满足为0
-    Tensor* t8ac52 = t8ac5->equal(t8ac51);
+    Tensor<double>* t8ac52 = t8ac5->equal(t8ac51);
     t8ac52->print( );
 
     delete t8ac5;
@@ -300,10 +302,10 @@ int main() {
 
     // 3.3 Comparison operations lequal
     std::cout << "-----------------[3.3] Comparison operations lequal-----------------" << std::endl;
-    Tensor* t8ac15 = new Tensor( {0, 0.9, 0, 0, 0, 0.9, 0.2, 0}, {2, 2, 2} );
-    Tensor* t8ac151 = Tensor::full(t8ac15->shape, 0.2);
+    Tensor<float>* t8ac15 = new Tensor<float>( {0, 0.9, 0, 0, 0, 0.9, 0.2, 0}, {2, 2, 2} );
+    Tensor<float>* t8ac151 = Tensor<float>::full(t8ac15->shape, 0.2);
 
-    Tensor* t8ac152 = t8ac15->lequal(t8ac151);
+    Tensor<float>* t8ac152 = t8ac15->lequal(t8ac151);
     t8ac152->print( );
 
     delete t8ac15;
@@ -311,18 +313,31 @@ int main() {
 
     // 3.3 Comparison operations lequal
     std::cout << "-----------------[3.3] Comparison operations gequal-----------------" << std::endl;
-    Tensor* t8ac105 = new Tensor( {0, 0.09, 0, 0, 0, 0.09, 0.2, 0}, {2, 2, 2} );
-    Tensor* t8ac1051 = Tensor::full(t8ac105->shape, 0.2);
+    Tensor<float>* t8ac105 = new Tensor<float>( {0, 0.09, 0, 0, 0, 0.09, 0.2, 0}, {2, 2, 2} );
+    Tensor<float>* t8ac1051 = Tensor<float>::full(t8ac105->shape, 0.2);
 
-    Tensor* t8ac1052 = t8ac105->gequal(t8ac1051);
+    Tensor<float>* t8ac1052 = t8ac105->gequal(t8ac1051);
     t8ac1052->print( );
 
     delete t8ac105;
     delete t8ac1051;
-
-
+   /* //3.4 Einsum operations
+    std::cout << "-----------------[3.4] Einsum operations -----------------" << std::endl;
+    Tensor<float>* t1 = Tensor<float>::rand({3, 4}, 1.0);
+    vector<Tensor<float>*>first;
+    first.push_back(t1);
+    t1->print();
+    Tensor<float>* t5 = Tensor<float>::einsum("ss->s", first); // This computes the diagonal of t1.
+    t5->print();
+    //if the input string is wrong, then we just return the original string
+    Tensor<float>* t6 = Tensor<float>::einsum("ss->a", first); // This computes the diagonal of t1.
+    t6->print();
+    Tensor<float>* t7 = Tensor<float>::einsum("sa->a", first); // 行列求和
+    t7->print();
+    Tensor<float>* t8 = Tensor<float>::einsum("gy->g", first); // 行列求和
+    t8->print();*/
     // 3.2.1 serialization
-    std::cout << "-----------------[3.2.1]serialization-----------------" << std::endl;
+  /*  std::cout << "-----------------[3.2.1]serialization-----------------" << std::endl;
     // 序列化 tensor
     Tensor* te00i =  Tensor::rand({6, 3, 2}, 5.0f);
     te00i->print();
@@ -345,8 +360,6 @@ int main() {
     delete te00i;
     delete te02i;
 
-    while(true) {
-
-    };
+*/
     return 0;
 }
