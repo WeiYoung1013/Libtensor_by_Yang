@@ -32,6 +32,8 @@ public:
     // 张量的尺寸
     std::vector<int> shape;
     std::vector<int> stride;
+    Tensor* grad = nullptr;
+    std::vector<Tensor*> grad_history;
 
 
     Tensor();
@@ -49,6 +51,11 @@ public:
     void updateShape(const std::vector<int> &new_shape);
     void deleteData(void);
     void updateStrides();
+    void computeGradient();
+    Tensor* getGradient();
+    void updateGradient(Tensor* new_grad);
+    Tensor* getCurrentGradient();
+    Tensor *getGradientHistory(int index);
 
 
     void print(int precision = -6, bool raw = false);
@@ -110,6 +117,7 @@ public:
     static Tensor* add(Tensor *A, Tensor *B);
     static void add(Tensor *A, Tensor *B, Tensor *C);
     static void add(float scA, Tensor *A, float scB, Tensor *B, Tensor *C, int incC);
+    static void add(Tensor *A, Tensor *B, Tensor *C, float scale);
 
     friend Tensor& operator+ (Tensor &A, Tensor &B);
     friend Tensor& operator+ (Tensor &A, float v);
@@ -246,6 +254,8 @@ public:
 
     friend std::ostream &operator<<(std::ostream &os, Tensor &t);
     //friend ostream &operator<<(ostream &out, complex &A);
+
+    static Tensor *negate(Tensor *A);
 };
 
 

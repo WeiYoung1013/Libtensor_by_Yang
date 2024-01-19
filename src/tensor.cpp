@@ -562,6 +562,17 @@ Tensor* Tensor::add(Tensor *A, Tensor *B){
 
 void Tensor::add(Tensor *A, Tensor *B, Tensor *C) {
     Tensor::add(1.0, A, 1.0, B, C, 0);
+    if (A->grad != nullptr && B->grad != nullptr) {
+        if (C->grad != nullptr) {
+            // 如果C已经有梯度，需要先保存它到历史记录中
+            C->grad_history.push_back(C->grad);
+        } else {
+            // 如果C没有梯度，直接创建一个新梯度
+            C->grad = Tensor::empty(A->getShape());
+        }
+        // 更新C的梯度为A和B的梯度之和
+        Tensor::add(1.0, A->grad, 1.0, B->grad, C->grad, 0);
+    }
 }
 
 void Tensor::add(float scA, Tensor *A, float scB, Tensor *B, Tensor *C, int incC) {
@@ -577,6 +588,20 @@ void Tensor::add(float scA, Tensor *A, float scB, Tensor *B, Tensor *C, int incC
     }
     cpu_add(scA, A, scB, B, C, incC);
 }
+void Tensor::add(Tensor *A, Tensor *B, Tensor *C, float scale) {
+    // 确保张量形状相同
+    if (!sameShape(A, B) || !sameShape(A, C)) {
+        msg("Incompatible dims", "Tensor::add");
+        return;
+    }
+
+    // 进行加法操作
+    for (size_t i = 0; i < A->size_; ++i) {
+        C->ptr[i] = scale * (A->ptr[i] + B->ptr[i]);
+    }
+}
+
+
 
 // + *3
 Tensor& operator+ (Tensor &A, Tensor &B) {
@@ -639,6 +664,19 @@ Tensor* Tensor::sub(Tensor *A, Tensor *B){
 
 void Tensor::sub(Tensor *A, Tensor *B, Tensor *C) {
     Tensor::sub(1.0, A, 1.0, B, C, 0);
+
+    if (A->grad != nullptr && B->grad != nullptr) {
+        if (C->grad != nullptr) {
+            // 如果C已经有梯度，需要先保存它到历史记录中
+            C->grad_history.push_back(C->grad);
+        } else {
+            // 如果C没有梯度，直接创建一个新梯度
+            C->grad = Tensor::empty(A->getShape());
+        }
+        // 更新C的梯度。A的梯度被加上，而B的梯度被减去
+        Tensor::add(1.0, A->grad, -1.0, B->grad, C->grad, 0);
+    }
+
 }
 
 void Tensor::sub(float scA, Tensor *A, float scB, Tensor *B, Tensor *C, int incC) {
@@ -716,6 +754,22 @@ Tensor* Tensor::mul(Tensor *A, Tensor *B){
 
 void Tensor::mul(Tensor *A, Tensor *B, Tensor *C) {
     Tensor::mul(1.0, A, 1.0, B, C, 0);
+    if (A->grad != nullptr && B->grad != nullptr) {
+        if (C->grad != nullptr) {
+            // 如果C已经有梯度，需要先保存它到历史记录中
+            C->grad_history.push_back(C->grad);
+        } else {
+            // 如果C没有梯度，直接创建一个新梯度
+            C->grad = Tensor::empty(A->getShape());
+        }
+        // 为C计算新的梯度。C的梯度是A的梯度乘以B，加上B的梯度乘以A
+        Tensor *gradA = Tensor::mul(A->grad, B);
+        Tensor *gradB = Tensor::mul(B->grad, A);
+        Tensor::add(gradA, gradB, C->grad, 1.0);
+        delete gradA; // 注意清理临时创建的梯度张量
+        delete gradB;
+    }
+
 }
 
 void Tensor::mul(float scA, Tensor *A, float scB, Tensor *B, Tensor *C, int incC) {
@@ -792,7 +846,44 @@ Tensor* Tensor::div(Tensor *A, Tensor *B){
 
 void Tensor::div(Tensor *A, Tensor *B, Tensor *C) {
     Tensor::div(1.0, A, 1.0, B, C, 0);
+    // 检查A和B是否有梯度
+    if (A->grad != nullptr && B->grad != nullptr) {
+        if (C->grad != nullptr) {
+            // 如果C已经有梯度，需要先保存它到历史记录中
+            C->grad_history.push_back(C->grad);
+        } else {
+            // 如果C没有梯度，直接创建一个新梯度
+            C->grad = Tensor::empty(A->getShape());
+        }
+        // 计算C相对于A的梯度
+        Tensor *gradA = Tensor::div(A->grad, B); // 梯度是1/B
+
+        // 计算C相对于B的梯度
+
+        Tensor *negA = Tensor::negate(A); // 创建-A
+        Tensor *B_squared = Tensor::mul(B, B); // 创建B^2
+        Tensor *gradB = Tensor::div(negA, B_squared); // 梯度是-A/B^2
+        Tensor::add(gradA, gradB, C->grad, 1.0);
+
+        delete negA; // 清理临时张量
+        delete B_squared;
+        delete gradB;
+    }
+
 }
+Tensor* Tensor::negate(Tensor *A) {
+    // 创建一个新的空张量，形状与A相同
+    Tensor* negA = Tensor::empty(A->getShape());
+
+    // 对A中的每个元素取负值，存储在negA中
+    for (size_t i = 0; i < A->size_; ++i) {
+        negA->ptr[i] = -A->ptr[i];
+    }
+
+    return negA;
+}
+
+
 
 void Tensor::div(float scA, Tensor *A, float scB, Tensor *B, Tensor *C, int incC) {
     ///////////////////////////////////////
@@ -852,6 +943,21 @@ Tensor* Tensor::log(){
 
 void Tensor::log(Tensor *A, Tensor *B){
     cpu_log(A, B);
+
+    if (A->grad != nullptr) {
+        if (B->grad != nullptr) {
+            // 如果B已经有梯度，需要先保存它到历史记录中
+            B->grad_history.push_back(B->grad);
+        } else {
+            // 如果B没有梯度，直接创建一个新梯度
+            B->grad = Tensor::empty(A->getShape());
+        }
+        // 计算B相对于A的梯度
+        for (size_t i = 0; i < A->size_; ++i) {
+            B->grad->ptr[i] = 1.0 / A->ptr[i];
+        }
+    }
+
 }
 
 
@@ -869,6 +975,24 @@ Tensor* Tensor::log2(){
 
 void Tensor::log2(Tensor *A, Tensor *B){
     cpu_log2(A, B);
+    // 计算log(2)
+    const float log2_val = std::log(2.0);
+
+    // 检查A是否有梯度
+    if (A->grad != nullptr) {
+        if (B->grad != nullptr) {
+            // 如果B已经有梯度，需要先保存它到历史记录中
+            B->grad_history.push_back(B->grad);
+        } else {
+            // 如果B没有梯度，直接创建一个新梯度
+            B->grad = Tensor::empty(A->getShape());
+        }
+        // 计算B相对于A的梯度
+        for (size_t i = 0; i < A->size_; ++i) {
+            B->grad->ptr[i] = 1.0 / (A->ptr[i] * log2_val);
+        }
+    }
+
 }
 
 
@@ -886,6 +1010,24 @@ Tensor* Tensor::log10(){
 
 void Tensor::log10(Tensor *A, Tensor *B){
     cpu_log10(A, B);
+    // 计算log(10)
+    const float log10_val = std::log(10.0);
+
+    // 检查A是否有梯度
+    if (A->grad != nullptr) {
+        if (B->grad != nullptr) {
+            // 如果B已经有梯度，需要先保存它到历史记录中
+            B->grad_history.push_back(B->grad);
+        } else {
+            // 如果B没有梯度，直接创建一个新梯度
+            B->grad = Tensor::empty(A->getShape());
+        }
+        // 计算B相对于A的梯度
+        for (size_t i = 0; i < A->size_; ++i) {
+            B->grad->ptr[i] = 1.0 / (A->ptr[i] * log10_val);
+        }
+    }
+
 }
 
 
@@ -903,13 +1045,47 @@ Tensor* Tensor::logn(float n){
 
 void Tensor::logn(Tensor *A, Tensor *B, float n){
     cpu_logn(A, B, n);
+    // 计算log(n)
+    const float log_n_val = std::log(n);
+
+    // 检查A是否有梯度
+    if (A->grad != nullptr) {
+        if (B->grad != nullptr) {
+            // 如果B已经有梯度，需要先保存它到历史记录中
+            B->grad_history.push_back(B->grad);
+        } else {
+            // 如果B没有梯度，直接创建一个新梯度
+            B->grad = Tensor::empty(A->getShape());
+        }
+        // 计算B相对于A的梯度
+        for (size_t i = 0; i < A->size_; ++i) {
+            B->grad->ptr[i] = 1.0 / (A->ptr[i] * log_n_val);
+        }
+    }
+
 }
 
 // ------------------------------
 
-float Tensor::sum(){
-    return Tensor::sum(this);
+float Tensor::sum() {
+    float sum_result = Tensor::sum(this);
+
+    // 检查当前张量是否有梯度
+    if (this->grad != nullptr) {
+        // 创建一个新的梯度张量，形状与当前张量相同
+        Tensor* grad_sum = Tensor::empty(this->getShape());
+
+        // 将梯度张量的每个元素设置为1
+        std::fill_n(grad_sum->ptr, this->size_, 1.0f);
+
+        // 更新梯度历史
+        this->grad_history.push_back(this->grad);
+        this->grad = grad_sum;
+    }
+
+    return sum_result;
 }
+
 
 
 float Tensor::sum(Tensor* A){
@@ -1280,4 +1456,38 @@ std::string Tensor::type() {
 void* Tensor::data_ptr() {
     return this->ptr;
 }
+void Tensor::computeGradient(){
+    if(this->grad!= nullptr){
+        delete this->grad;
+    }
+    this->grad=new Tensor(this->shape);
+    this->grad->fill_(1.0f);
+}
 
+Tensor* Tensor::getGradient(){
+    if(this->grad== nullptr){
+        this->computeGradient();
+    }
+    return this->grad;
+}
+
+void Tensor::updateGradient(Tensor *new_grad) {
+    if(this->grad!= nullptr){
+        grad_history.push_back(this->grad);
+    }
+    this->grad=new_grad;
+}
+
+Tensor* Tensor::getCurrentGradient() {
+    if(!grad_history.empty()){
+        return grad_history.back();
+    }
+    return nullptr;
+}
+
+Tensor* Tensor::getGradientHistory(int index) {
+    if(index>=grad_history.size()){
+        msg("index out of range", "Tensor::getGradientHistory");
+    }
+    return grad_history[index];
+}
