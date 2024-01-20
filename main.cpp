@@ -27,11 +27,11 @@ int main() {
     delete t8s3g;
 
 
-   // 2. 生成 2 * 3 * 3 张量
+    // 2. 生成 2 * 3 * 3 张量
     std::cout << "-----------------[1.1.2] create 2 * 3 * 3-----------------" << std::endl;
     Tensor<float>* t63g0 = new Tensor<float>({-0.5792, -0.1372,  -0.5792, -0.1372, 0.5962,  1.2097,
-                               -0.5792, -0.1372,  -0.5792, -0.1372, 0.5962,  1.2097,
-                               -0.5792, -0.1372,  -0.5792, -0.1372, 0.5962,  1.2097}, {2, 3, 3} );
+                                              -0.5792, -0.1372,  -0.5792, -0.1372, 0.5962,  1.2097,
+                                              -0.5792, -0.1372,  -0.5792, -0.1372, 0.5962,  1.2097}, {2, 3, 3} );
     t63g0->print();
     delete t63g0;
 
@@ -51,8 +51,8 @@ int main() {
     // 3. 4 * 2 * 2 全0 张量
     std::cout << "-----------------[1.3.1] create 4 * 2 * 2 zero-----------------" << std::endl;
     Tensor<float>* temno = new Tensor<float>({0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                               }, {4, 2, 2});
+                                              0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                                             }, {4, 2, 2});
     Tensor<float>* tdzja = Tensor<float>::zeros({4, 2, 2});
 
     temno->print();
@@ -345,6 +345,9 @@ int main() {
     std::cout << "-----------------[3.4.2] Einsum operations ij->ji-----------------" << std::endl;
     Tensor<float>* t9 = Tensor<float>::einsum("gy->yg", first); // 矩阵反转
     t9->print();
+    std::cout << "-----------------[3.4.4] Einsum operations ij->-----------------" << std::endl;
+    Tensor<float>* t88 = Tensor<float>::einsum("gy->", first); // 求和
+    t88->print();
     std::cout << "-----------------[3.4.5] Einsum operations ij->i-----------------" << std::endl;
     Tensor<float>* t7 = Tensor<float>::einsum("sa->a", first); // 行列求和
     t7->print();
@@ -361,33 +364,33 @@ int main() {
     Tensor<float>* t11 = Tensor<float>::einsum("i,i->", third); // 点乘
     t11->print();
     std::cout << "-----------------[3.4.9] Einsum operations ij,ij>-----------------" << std::endl;
-   Tensor<float>* t10 = Tensor<float>::einsum("ij,ij->", second); // 内积
+    Tensor<float>* t10 = Tensor<float>::einsum("ij,ij->", second); // 内积
     t10->print();
 
     // 3.2.1 serialization
-  /*  std::cout << "-----------------[3.2.1]serialization-----------------" << std::endl;
-    // 序列化 tensor
-    Tensor* te00i =  Tensor::rand({6, 3, 2}, 5.0f);
-    te00i->print();
+    /*  std::cout << "-----------------[3.2.1]serialization-----------------" << std::endl;
+      // 序列化 tensor
+      Tensor* te00i =  Tensor::rand({6, 3, 2}, 5.0f);
+      te00i->print();
 
-    te00i->save("tensor.bin");
+      te00i->save("tensor.bin");
 
-    Tensor* te02i = te00i->load("tensor.bin");
-    te02i->print();
+      Tensor* te02i = te00i->load("tensor.bin");
+      te02i->print();
 
-    // cout
-    std::cout << "-----------------cout-----------------" << std::endl;
-    std::cout << *te02i << std::endl;
-    std::cout << "-----------------size-----------------" << std::endl;
-    std::cout << te02i->size() << std::endl;
+      // cout
+      std::cout << "-----------------cout-----------------" << std::endl;
+      std::cout << *te02i << std::endl;
+      std::cout << "-----------------size-----------------" << std::endl;
+      std::cout << te02i->size() << std::endl;
 
-    std::cout << "-----------------data_ptr-----------------" << std::endl;
-    std::cout << te02i->data_ptr() << std::endl;
+      std::cout << "-----------------data_ptr-----------------" << std::endl;
+      std::cout << te02i->data_ptr() << std::endl;
 
 
-    delete te00i;
-    delete te02i;
+      delete te00i;
+      delete te02i;
 
-*/
+  */
     return 0;
 }
