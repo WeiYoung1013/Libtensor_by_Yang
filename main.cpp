@@ -356,8 +356,8 @@ int main() {
     Tensor<float>* t8 = Tensor<float>::einsum("gy->g", first); // 行列求和
     t8->print();
     std::cout << "-----------------[3.4.6] Einsum operations ik,k->i-----------------" << std::endl;
-    Tensor <float> *qcv= new Tensor<float>({0, 1, 2, 3, 4, 5}, {2, 3} );
-    Tensor <float>*qcv2 = new Tensor<float>({0,1,2}, {1,3} );
+    Tensor <float> *qcv= new Tensor<float>({0, 1.5, 2.5, 3.5, 4.5, 5.5}, {2, 3} );
+    Tensor <float>*qcv2 = new Tensor<float>({0,1.5,2.5}, {1,3} );
     ss.push_back(qcv);
     ss.push_back(qcv2);
 
