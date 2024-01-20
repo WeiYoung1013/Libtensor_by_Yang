@@ -371,7 +371,7 @@ int main() {
     ssd.push_back(q2);
     Tensor<int>* t = Tensor<int>::einsum("ab,bc->ac", ssd);
     t->print();
-    std::cout << "-----------------[3.4.8] Einsum operations ij->i-----------------" << std::endl;
+    std::cout << "-----------------[3.4.8] Einsum operations i,i->i-----------------" << std::endl;
     Tensor<float>* t12 = Tensor<float>::rand({1, 4}, 1.0);
     t12->print();
     Tensor<float>* t13= Tensor<float>::rand({1, 4}, 1.0);
@@ -384,6 +384,14 @@ int main() {
     std::cout << "-----------------[3.4.9] Einsum operations ij,ij>-----------------" << std::endl;
     Tensor<float>* t10 = Tensor<float>::einsum("ij,ij->", second); // 内积
     t10->print();
+    std::cout << "-----------------[3.4.10] Einsum operations i,j->ij>-----------------" << std::endl;
+    ssd.clear();
+    Tensor <int> *q101= new Tensor<int>({0, 1, 2}, {1, 3} );
+    Tensor <int>*q102 = new Tensor<int>({3,4,5,6}, {1,4} );
+    ssd.push_back(q101);
+    ssd.push_back(q102);
+    Tensor<int>* t100 = Tensor<int>::einsum("i,j->ij", ssd); // 内积
+    t100->print();
 
     // 3.2.1 serialization
     /*  std::cout << "-----------------[3.2.1]serialization-----------------" << std::endl;
