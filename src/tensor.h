@@ -80,6 +80,42 @@ public:
     void computeGradient(); // 计算梯度的方法
     Tensor<T>* getGradient(); // 获取当前梯度的方法
     void backward();
+    T determinant() const {
+        // 检查是否是方阵
+        if (shape.size() != 2 || shape[0] != shape[1]) {
+            cout<<"Current tensor is not a square matrix, cannot compute determinant."<<endl;
+            return 0;
+        }
+
+        int n = shape[0];
+        return determinantRecursive(ptr, n);
+    }
+    static T determinantRecursive(const T* matrix, int n) {
+        if (n == 1) {
+            return matrix[0];
+        }
+        if (n == 2) {
+            return matrix[0] * matrix[3] - matrix[1] * matrix[2];
+        }
+
+        T det = 0;
+        std::vector<T> submatrix(n * n);
+        for (int x = 0; x < n; x++) {
+            int subi = 0;
+            for (int i = 1; i < n; i++) {
+                int subj = 0;
+                for (int j = 0; j < n; j++) {
+                    if (j == x) continue;
+                    submatrix[subi * n + subj] = matrix[i * n + j];
+                    subj++;
+                }
+                subi++;
+            }
+            det += (x % 2 == 0 ? 1 : -1) * matrix[x] * determinantRecursive(submatrix.data(), n - 1);
+        }
+        return det;
+    }
+
 
 
     static  T sum(Tensor<T>* A){
@@ -1299,76 +1335,58 @@ public:
 //    return (stat (s.c_str(), &buffer) == 0);
 //}
 
-    void save(const string& filename) {
-        //string folder = filename.substr(0, filename.find_last_of("\\/"));
-        //if(folder != filename && !pathExists(folder)){
-        //    msg("The file could not be saved. Check if the directory exists or if you have permissions to write in it.", "Tensor::save");
-        //}
-
-        std::ofstream ofs(filename, std::ios::out | std::ios::binary);
-        //Tensor::savefs(ofs, format);
-        ofs.write(reinterpret_cast<const char *>(&this->ndim), sizeof(int));
-        // Save dimensions
-        ofs.write(reinterpret_cast<const char *>(this->shape.data()), this->shape.size() * sizeof(int));
-        // Save content (row-major)
-        ofs.write(reinterpret_cast<const char *>(this->ptr), this->size_ * sizeof(float));
-        ofs.close();
-
-    }
-
-    Tensor<T>*load(const string& filename) {
-        std::ifstream ifs(filename, std::ios::in | std::ios::binary);
-        //std::ifstream ifs =
-        size_t start_row = 0;
-        size_t end_row = -1;
-
-        size_t r_ndim;
-
-        // Load number of dimensions
-        ifs.read(reinterpret_cast<char *>(&r_ndim),  sizeof(int));
-
-        // Load dimensions
-        vector<int> r_shape(r_ndim);
-        ifs.read(reinterpret_cast<char *>(r_shape.data()), r_ndim * sizeof(int));
-
-        // Compute total size_
-        size_t r_size = 1;
-        for(int i=0; i<r_ndim; i++){ r_size *= r_shape[i]; }
-
-        // Compute stride
-        vector<int> tmp_stride = shape2stride(r_shape);
-
-        // Compute offsets and positions to read
-        size_t start_offset = start_row * tmp_stride[0];
-        size_t n_read;
-
-        if(end_row<0){
-            n_read = r_size;
-        }else{
-            // Compute bytes to read
-            size_t n_rows = end_row - start_row;
-            n_read = n_rows * tmp_stride[0];
-
-            // Set new shape
-            r_shape[0] = n_rows;
-
-            // Set cursor's position
-            ifs.seekg(start_offset*sizeof(float), std::ifstream::cur);
+    void save(const std::string& filename) {
+        std::ofstream ofs(filename, std::ios::out | std::ios::trunc); // 使用 trunc 标志清空文件
+        if (!ofs.is_open()) {
+            throw std::runtime_error("Unable to open file: " + filename);
         }
 
-        auto *t1 = new Tensor(r_shape);
-        ifs.read(reinterpret_cast<char*>(t1->ptr), n_read * sizeof(float));
-        // Load content (row-major)
-        /*
-        auto *r_ptr = new float[r_size];
-        ifs.read(reinterpret_cast<char*>(r_ptr), n_read * sizeof(float));
+        // 写入维度和尺寸信息
+        ofs << this->ndim << std::endl;
+        for (int dim : this->shape) {
+            ofs << dim << " ";
+        }
+        ofs << std::endl;
 
-        // Return new tensor
-        auto *t1 = new Tensor(r_shape, r_ptr, DEV_CPU);
-        */
-//    t1->info();
+        // 写入张量数据
+        for (size_t i = 0; i < this->size_; ++i) {
+            ofs << this->ptr[i] << " ";
+        }
+        ofs << std::endl;
+
+        ofs.close();
+    }
+
+
+    static Tensor<float>* load(const std::string& filename) {
+        std::ifstream ifs(filename, std::ios::in);
+        if (!ifs.is_open()) {
+            throw std::runtime_error("Unable to open file: " + filename);
+        }
+
+        size_t r_ndim;
+        ifs >> r_ndim;
+
+        std::vector<int> r_shape(r_ndim);
+        for (size_t i = 0; i < r_ndim; ++i) {
+            ifs >> r_shape[i];
+        }
+
+        // 计算总大小
+        size_t r_size = 1;
+        for (int dim : r_shape) {
+            r_size *= dim;
+        }
+
+        auto* t1 = new Tensor<float>(r_shape);
+        for (size_t i = 0; i < r_size; ++i) {
+            ifs >> t1->ptr[i];
+        }
+
+        ifs.close();
         return t1;
     }
+
 
 
 
@@ -2164,6 +2182,10 @@ void Tensor<T>::backward() {
         }
     }
 }
+
+
+
+
 
 
 #endif //TENSOR_TENSOR_H

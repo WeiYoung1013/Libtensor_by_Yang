@@ -398,15 +398,17 @@ int main() {
 
 
     // 3.2.1 serialization
-    /*
+
       std::cout << "-----------------[3.2.1]serialization-----------------" << std::endl;
       // 序列化 tensor
       Tensor<float>* te00i =  Tensor<float>::rand({6, 3, 2}, 5.0f);
       te00i->print();
 
-      te00i->save("tensor.bin");
+      te00i->save("tensor.txt");
+      cout<<"finish save"<<endl;
 
-      Tensor<float>* te02i = te00i->load("tensor.bin");
+      Tensor<float>* te02i = Tensor<float>::load("tensor.txt");
+      cout<<"finish load"<<endl;
       te02i->print();
 
       // cout
@@ -421,7 +423,7 @@ int main() {
 
       delete te00i;
       delete te02i;
-      */
+
 
 
 
@@ -497,6 +499,16 @@ int main() {
         delete tensorLog2;
         delete tensorLog10;
         delete tensorLogn;
+
+
+    std::cout << "-----------------[Test Determinant of Square Matrix]-----------------" << std::endl;
+    Tensor<float>* tensorSquare = new Tensor<float>({1.0, 2.0, 3.0, 4.0}, {2, 2});
+    cout<<tensorSquare->determinant();
+    cout<<endl;
+
+
+    Tensor<float>* tensorNonSquare = new Tensor<float>({0.5, 1.5, 2.5, 3.5, 4.5}, {2, 3});
+    cout<<tensorNonSquare->determinant();
 
 
     return 0;
