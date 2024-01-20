@@ -328,8 +328,10 @@ int main() {
     std::cout << "-----------------[3.4] Einsum operations -----------------" << std::endl;
     Tensor<float>* t1 = Tensor<float>::rand({3, 4}, 1.0);
     Tensor<float>* t2 = Tensor<float>::rand({3, 4}, 1.0);
+    Tensor<float>* t3 = Tensor<float>::rand({1, 4}, 1.0);
     vector<Tensor<float>*>first;
     vector<Tensor<float>*>second;
+    vector<Tensor<float>*>ss;
     first.push_back(t1);
     second.push_back(t1);
     second.push_back(t2);
@@ -353,6 +355,14 @@ int main() {
     t7->print();
     Tensor<float>* t8 = Tensor<float>::einsum("gy->g", first); // 行列求和
     t8->print();
+    std::cout << "-----------------[3.4.6] Einsum operations ik,k->i-----------------" << std::endl;
+    Tensor <float> *qcv= new Tensor<float>({0, 1, 2, 3, 4, 5}, {2, 3} );
+    Tensor <float>*qcv2 = new Tensor<float>({0,1,2}, {1,3} );
+    ss.push_back(qcv);
+    ss.push_back(qcv2);
+
+    Tensor<float>* t111 = Tensor<float>::einsum("ik,k->i", ss);
+    t111->print();
     std::cout << "-----------------[3.4.8] Einsum operations ij->i-----------------" << std::endl;
     Tensor<float>* t12 = Tensor<float>::rand({1, 4}, 1.0);
     t12->print();
