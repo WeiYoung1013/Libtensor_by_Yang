@@ -80,40 +80,39 @@ public:
     void computeGradient(); // 计算梯度的方法
     Tensor<T>* getGradient(); // 获取当前梯度的方法
     void backward();
-    T determinant() const {
-        // 检查是否是方阵
-        if (shape.size() != 2 || shape[0] != shape[1]) {
-            cout<<"Current tensor is not a square matrix, cannot compute determinant."<<endl;
-            return 0;
-        }
 
-        int n = shape[0];
-        return determinantRecursive(ptr, n);
-    }
-    static T determinantRecursive(const T* matrix, int n) {
+    static T determinantRecursive(const T* matrix, int n, int skipRow) {
         if (n == 1) {
             return matrix[0];
         }
-        if (n == 2) {
-            return matrix[0] * matrix[3] - matrix[1] * matrix[2];
-        }
 
         T det = 0;
-        std::vector<T> submatrix(n * n);
+        std::vector<T> submatrix((n - 1) * (n - 1));
         for (int x = 0; x < n; x++) {
             int subi = 0;
-            for (int i = 1; i < n; i++) {
+            for (int i = 0; i < n; i++) {
+                if (i == skipRow) continue; // 跳过当前行
                 int subj = 0;
                 for (int j = 0; j < n; j++) {
-                    if (j == x) continue;
-                    submatrix[subi * n + subj] = matrix[i * n + j];
+                    if (j == x) continue; // 跳过当前列
+                    submatrix[subi * (n - 1) + subj] = matrix[i * n + j];
                     subj++;
                 }
                 subi++;
             }
-            det += (x % 2 == 0 ? 1 : -1) * matrix[x] * determinantRecursive(submatrix.data(), n - 1);
+            det += (x % 2 == 0 ? 1 : -1) * matrix[skipRow * n + x] * determinantRecursive(submatrix.data(), n - 1, 0);
         }
         return det;
+    }
+
+    T determinant() const {
+        if (shape.size() != 2 || shape[0] != shape[1]) {
+            std::cout << "Current tensor is not a square matrix, cannot compute determinant." << std::endl;
+            return static_cast<T>(0);
+        }
+
+        int n = shape[0];
+        return determinantRecursive(ptr, n, 0);
     }
 
 

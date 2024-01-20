@@ -506,6 +506,11 @@ int main() {
     cout<<tensorSquare->determinant();
     cout<<endl;
 
+    Tensor<float>* tensorSquare2 = new Tensor<float>({1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0},{3, 3});
+    tensorSquare2->print();
+    cout<<tensorSquare2->determinant();
+    cout<<endl;
+
 
     Tensor<float>* tensorNonSquare = new Tensor<float>({0.5, 1.5, 2.5, 3.5, 4.5}, {2, 3});
     cout<<tensorNonSquare->determinant();
