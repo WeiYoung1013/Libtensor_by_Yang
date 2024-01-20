@@ -332,6 +332,7 @@ int main() {
     vector<Tensor<float>*>first;
     vector<Tensor<float>*>second;
     vector<Tensor<float>*>ss;
+    vector<Tensor<int>*>ssd;
     first.push_back(t1);
     second.push_back(t1);
     second.push_back(t2);
@@ -360,9 +361,16 @@ int main() {
     Tensor <float>*qcv2 = new Tensor<float>({0,1.5,2.5}, {1,3} );
     ss.push_back(qcv);
     ss.push_back(qcv2);
-
-    Tensor<float>* t111 = Tensor<float>::einsum("ik,k->i", ss);
+    Tensor<float>* t111 = Tensor<float>::einsum("ig,g->i", ss);
+    ss.clear();
     t111->print();
+    std::cout << "-----------------[3.4.7] Einsum operations ik,kj->ij-----------------" << std::endl;
+    Tensor <int> *q1= new Tensor<int>({0, 1, 2, 3, 4, 5}, {2, 3} );
+    Tensor <int>*q2 = new Tensor<int>({0,1,2,3,4,5,6,7,8,9,10,11,12,13,14}, {3,5} );
+    ssd.push_back(q1);
+    ssd.push_back(q2);
+    Tensor<int>* t = Tensor<int>::einsum("ab,bc->ac", ssd);
+    t->print();
     std::cout << "-----------------[3.4.8] Einsum operations ij->i-----------------" << std::endl;
     Tensor<float>* t12 = Tensor<float>::rand({1, 4}, 1.0);
     t12->print();
