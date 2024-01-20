@@ -9,7 +9,7 @@
 #endif // _WIN32
 
 #include "src/tensor.h"
-
+#include <algorithm>
 int main() {
 
 #ifdef _WIN32
@@ -23,7 +23,9 @@ int main() {
     std::cout << "-----------------[1.1.1] create 2 * 2-----------------" << std::endl;
     Tensor<float>* t8s3g = new Tensor<float>({-0.5792, -0.1372,   0.5962,  1.2097}, {2,2} );
     t8s3g->print();
+
     delete t8s3g;
+
 
    // 2. 生成 2 * 3 * 3 张量
     std::cout << "-----------------[1.1.2] create 2 * 3 * 3-----------------" << std::endl;
@@ -71,6 +73,7 @@ int main() {
 
     Tensor<float>* tbwsq = Tensor<float>::full({2, 2, 2}, 5);
     tbwsq->print();
+
     delete tbwsq;
 
     //  [1.4.1] create 4 * 4  eye
@@ -321,21 +324,46 @@ int main() {
 
     delete t8ac105;
     delete t8ac1051;
-   /* //3.4 Einsum operations
+    //3.4 Einsum operations
     std::cout << "-----------------[3.4] Einsum operations -----------------" << std::endl;
     Tensor<float>* t1 = Tensor<float>::rand({3, 4}, 1.0);
+    Tensor<float>* t2 = Tensor<float>::rand({3, 4}, 1.0);
     vector<Tensor<float>*>first;
+    vector<Tensor<float>*>second;
     first.push_back(t1);
+    second.push_back(t1);
+    second.push_back(t2);
     t1->print();
+    t2->print();
+    std::cout << "-----------------[3.4.1] Einsum operations ii->i-----------------" << std::endl;
     Tensor<float>* t5 = Tensor<float>::einsum("ss->s", first); // This computes the diagonal of t1.
     t5->print();
+    std::cout << "------- if the input string is wrong, then we just return the original string-------" << std::endl;
     //if the input string is wrong, then we just return the original string
     Tensor<float>* t6 = Tensor<float>::einsum("ss->a", first); // This computes the diagonal of t1.
     t6->print();
+    std::cout << "-----------------[3.4.2] Einsum operations ij->ji-----------------" << std::endl;
+    Tensor<float>* t9 = Tensor<float>::einsum("gy->yg", first); // 矩阵反转
+    t9->print();
+    std::cout << "-----------------[3.4.5] Einsum operations ij->i-----------------" << std::endl;
     Tensor<float>* t7 = Tensor<float>::einsum("sa->a", first); // 行列求和
     t7->print();
     Tensor<float>* t8 = Tensor<float>::einsum("gy->g", first); // 行列求和
-    t8->print();*/
+    t8->print();
+    std::cout << "-----------------[3.4.8] Einsum operations ij->i-----------------" << std::endl;
+    Tensor<float>* t12 = Tensor<float>::rand({1, 4}, 1.0);
+    t12->print();
+    Tensor<float>* t13= Tensor<float>::rand({1, 4}, 1.0);
+    t13->print();
+    vector<Tensor<float>*>third;
+    third.push_back(t12);
+    third.push_back(t13);
+    Tensor<float>* t11 = Tensor<float>::einsum("i,i->", third); // 点乘
+    t11->print();
+    std::cout << "-----------------[3.4.9] Einsum operations ij,ij>-----------------" << std::endl;
+   Tensor<float>* t10 = Tensor<float>::einsum("ij,ij->", second); // 内积
+    t10->print();
+
     // 3.2.1 serialization
   /*  std::cout << "-----------------[3.2.1]serialization-----------------" << std::endl;
     // 序列化 tensor
