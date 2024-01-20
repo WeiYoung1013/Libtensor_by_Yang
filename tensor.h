@@ -76,6 +76,85 @@ public:
     T sum() {
         return Tensor<T>::sum(this);
     }
+    // ... (包含之前的Tensor类定义)
+
+// 批量矩阵乘法
+
+    Tensor<T> batch_matmul(const Tensor<T> &other) const {
+        if (this->ndim != 3 || other.ndim != 3) {
+            throw std::invalid_argument("Batch_matmul requires both tensors to be 3D.");
+        }
+
+        // 假设*this的形状为(batch_size, m, n), other的形状为(batch_size, n, p)
+        // 结果的形状应该为(batch_size, m, p)
+        if (this->shape[1] != other.shape[1] || this->shape[0] != other.shape[0]) {
+            throw std::invalid_argument("Batch_matmul dimensions do not match.");
+        }
+
+        int batch_size = this->shape[0];
+        int m = this->shape[1];
+        int n = this->shape[2];
+        int p = other.shape[2];
+
+        std::vector<int> new_shape = {batch_size, m, p};
+        Tensor<T> result(new_shape);
+
+        for (int b = 0; b < batch_size; b++) {
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < p; j++) {
+                    T sum = 0;
+                    for (int k = 0; k < n; k++) {
+                        sum += this->ptr[b * this->stride[0] + i * this->stride[1] + k] *
+                               other.ptr[b * other.stride[0] + k * other.stride[1] + j];
+                    }
+                    result.ptr[b * result.stride[0] + i * result.stride[1] + j] = sum;
+                }
+            }
+        }
+
+        return result;
+    }
+
+// 双线性变换
+
+    Tensor<T> bilinear(const Tensor<T> &A, const Tensor<T> &B) const {
+        if (this->ndim != 3 || A.ndim != 2 || B.ndim != 2) {
+            throw std::invalid_argument("Bilinear transformation requires specific tensor dimensions.");
+        }
+
+        // 假设*this的形状为(batch_size, n, m), A的形状为(n, p), B的形状为(m, q)
+        // 结果的形状应该为(batch_size, p, q)
+        if (this->shape[1] != A.shape[0] || this->shape[2] != B.shape[0]) {
+            throw std::invalid_argument("Bilinear transformation dimensions do not match.");
+        }
+
+        int batch_size = this->shape[0];
+        int n = this->shape[1];
+        int m = this->shape[2];
+        int p = A.shape[1];
+        int q = B.shape[1];
+
+        std::vector<int> new_shape = {batch_size, p, q};
+        Tensor<T> result(new_shape);
+
+        for (int b = 0; b < batch_size; b++) {
+            for (int i = 0; i < p; i++) {
+                for (int j = 0; j < q; j++) {
+                    T sum = 0;
+                    for (int k = 0; k < n; k++) {
+                        for (int l = 0; l < m; l++) {
+                            sum += this->ptr[b * this->stride[0] + k * this->stride[1] + l] *
+                                   A.ptr[k * A.stride[0] + i] *
+                                   B.ptr[l * B.stride[0] + j];
+                        }
+                    }
+                    result.ptr[b * result.stride[0] + i * result.stride[1]+ j] = sum;
+                }
+            }
+        }
+
+        return result;
+    }
 
     template<typename u>
     friend void operator-=(Tensor<u> &A, Tensor<u> &B);
@@ -1365,6 +1444,9 @@ public:
                     result = Tensor<T>::permute(Ta[0], {1, 0});
                     return result;
                 }
+                else if(count==1&&lhs.length()==3){
+
+                }
             }
             else if(count==1){
                 if(lhs.length()==5){
@@ -1388,12 +1470,28 @@ public:
                         return  Ta[0];
                     }
                 }
+                else if(lhs.length()==3){
+                    if(lhs[0]==rhs[0]&&lhs[2]==rhs[1]){
+                        T res=0;
+                        Tensor<T>* t8qcs = Tensor<T>::ones({Ta[0]->shape[1], Ta[1]->shape[1]});
+                        for (int i = 0; i < Ta[0]->shape[1]; ++i) {
+                            for (int j = 0; j < Ta[1]->shape[1]; ++j) {
+                                res=Ta[0]->ptr[i]*Ta[1]->ptr[j];
+                                int n = i;int m=j;
+                                std::string str_num = std::to_string(n);
+                                std::string str_num1 = std::to_string(m);
+                                t8qcs->set_select({str_num, str_num1}, res);
+                            }
+                        }
+                        return t8qcs;
+                    }
+                }
             }
 
         }
 
 
-
+        cout<<"No matching!!"<<endl;
         return  Ta[0];
     };
 };
