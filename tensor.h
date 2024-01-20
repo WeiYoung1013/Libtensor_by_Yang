@@ -1221,7 +1221,7 @@ public:
         std::size_t curr_op1 = 0;
         std::vector<std::vector<int>> op_labels(10);
         std::vector<int> op_labelsR(num);
-        Tensor *result= nullptr;
+        Tensor <T>*result= nullptr;
         size_t count = 0;//判断是否出现逗号
 
         for (int i = 0 ;i < lhs.length(); ++i) {
@@ -1245,7 +1245,7 @@ public:
             op_labelsR.push_back(s);
         }
         if(lhs.length()==2&&rhs.length()==0&&count==0){
-            Tensor<float>* t8 = Tensor<float>::ones({1, 1});
+            Tensor<T>* t8 = Tensor<T>::ones({1, 1});
             size_t size=1;
             vector<int>s=Ta[0]->shape;
             T res=0;
@@ -1260,7 +1260,7 @@ public:
 
         }
         if(lhs.length()>=3&&count==1&&rhs.length()==0){
-            Tensor<float>* t8qcs = Tensor<float>::ones({1, 1});
+            Tensor<T>* t8qcs = Tensor<T>::ones({1, 1});
             if(op_labels[0]==op_labels[1]){
                 size_t size=1;
                 vector<int>s=Ta[0]->shape;
@@ -1335,7 +1335,7 @@ public:
             }
             else if(count==1&&lhs.length()==4){
                 if(lhs[0]==rhs[0]&&lhs[1]==lhs[3]){
-                    Tensor<float>* t8qcs = Tensor<float>::ones({1, Ta[0]->shape[0]});
+                    Tensor<T>* t8qcs = Tensor<T>::ones({1, Ta[0]->shape[0]});
                     T res=0;
                     for (int i = 0; i < Ta[0]->shape[0]; ++i) {
                         res=0;
@@ -1364,6 +1364,29 @@ public:
                 if (lhs == rhs) {
                     result = Tensor<T>::permute(Ta[0], {1, 0});
                     return result;
+                }
+            }
+            else if(count==1){
+                if(lhs.length()==5){
+                    if( lhs[0]==rhs[0]&&lhs[1]==lhs[3]&&lhs[4]==rhs[1]){
+                        Tensor<T>* t8qcs = Tensor<T>::ones({Ta[0]->shape[0], Ta[1]->shape[1]});
+                        T res=0;
+                        for (int i = 0; i <Ta[0]->shape[0] ; ++i) {
+                            for (int j = 0; j < Ta[1]->shape[1]; ++j) {
+                                res=0;
+                                for (int k = 0; k < Ta[0]->shape[1]; ++k) {
+                                    res+=(Ta[0]->ptr[k+Ta[0]->shape[1]*i])*Ta[1]->ptr[k*Ta[1]->shape[1]+j];
+                                }
+                                int n = i;int m=j;
+                                std::string str_num = std::to_string(n);
+                                std::string str_num1 = std::to_string(m);
+                                t8qcs->set_select({str_num, str_num1}, res);
+                            }
+                        }return t8qcs;
+                    }
+                    else{cout<<"wrong input!"<<endl;
+                        return  Ta[0];
+                    }
                 }
             }
 
