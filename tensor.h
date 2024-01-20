@@ -1224,7 +1224,7 @@ public:
         Tensor *result= nullptr;
         size_t count = 0;//判断是否出现逗号
 
-      for (int i = 0 ;i < lhs.length(); ++i) {
+        for (int i = 0 ;i < lhs.length(); ++i) {
             switch (lhs[i]) {
                 // ......
                 case ',':
@@ -1244,27 +1244,41 @@ public:
             int s = rhs[i] - 'a';
             op_labelsR.push_back(s);
         }
+        if(lhs.length()==2&&rhs.length()==0&&count==0){
+            Tensor<float>* t8 = Tensor<float>::ones({1, 1});
+            size_t size=1;
+            vector<int>s=Ta[0]->shape;
+            T res=0;
+            for (int i = 0; i < s.size(); ++i) {
+                size=size*s[i];
+            }
+            for (int i = 0; i < size; ++i) {
+                res+=Ta[0]->ptr[i];
+            }
+            t8->set_select({"0", "0"}, res);
+            return  t8;
 
-         if(lhs.length()>=3&&count==1&&rhs.length()==0){
-             Tensor<float>* t8qcs = Tensor<float>::ones({1, 1});
-             if(op_labels[0]==op_labels[1]){
-                  size_t size=1;
-                 vector<int>s=Ta[0]->shape;
-                 T res=0;
+        }
+        if(lhs.length()>=3&&count==1&&rhs.length()==0){
+            Tensor<float>* t8qcs = Tensor<float>::ones({1, 1});
+            if(op_labels[0]==op_labels[1]){
+                size_t size=1;
+                vector<int>s=Ta[0]->shape;
+                T res=0;
                 for (int i = 0; i < s.size(); ++i) {
-                     size=size*s[i];
-                 }
+                    size=size*s[i];
+                }
 
-                 //  cout<<t8s3g->ptr[0]<<endl;
-                 for (int i = 0; i < size; ++i) {
+                //  cout<<t8s3g->ptr[0]<<endl;
+                for (int i = 0; i < size; ++i) {
                     res+=Ta[0]->ptr[i]*Ta[1]->ptr[i];
-                 }
-                 t8qcs->set_select({"0", "0"}, res);
-                 return  t8qcs;
+                }
+                t8qcs->set_select({"0", "0"}, res);
+                return  t8qcs;
 
 
-             }
-         }
+            }
+        }
 
         if (rhs.length() == 1) {
             if (count == 0) {//ij->i or ij->j
