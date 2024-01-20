@@ -1333,6 +1333,26 @@ public:
                 return result;
 
             }
+            else if(count==1&&lhs.length()==4){
+                if(lhs[0]==rhs[0]&&lhs[1]==lhs[3]){
+                    Tensor<int>* tlc = Tensor<int>::ones({1, Ta[0]->shape[0]});
+                    T res=0;
+                    for (int i = 0; i < Ta[0]->shape[0]; ++i) {
+                        for (int j = 0; j < Ta[0]->shape[1]; ++j) {
+                            res+=Ta[0]->ptr[j+i*Ta[0]->shape[1]]*Ta[1]->ptr[j];
+                        }
+
+                    }
+                    
+                }
+                else{
+                    cout<<"Wrong input!!"<<endl;
+                    return Ta[0];
+                }
+
+
+            }
+
         } else if (rhs.length() == 2) {
             if (count == 0) {//the condition of ij->ji
                 //   if()
