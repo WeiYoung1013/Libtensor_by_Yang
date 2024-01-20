@@ -1335,15 +1335,18 @@ public:
             }
             else if(count==1&&lhs.length()==4){
                 if(lhs[0]==rhs[0]&&lhs[1]==lhs[3]){
-                    Tensor<int>* tlc = Tensor<int>::ones({1, Ta[0]->shape[0]});
+                    Tensor<float>* t8qcs = Tensor<float>::ones({1, Ta[0]->shape[0]});
                     T res=0;
                     for (int i = 0; i < Ta[0]->shape[0]; ++i) {
+                        res=0;
                         for (int j = 0; j < Ta[0]->shape[1]; ++j) {
                             res+=Ta[0]->ptr[j+i*Ta[0]->shape[1]]*Ta[1]->ptr[j];
                         }
-
+                        int n = i;
+                        std::string str_num = std::to_string(n);
+                        t8qcs->set_select({"0", str_num}, res);
                     }
-                    
+                    return t8qcs;
                 }
                 else{
                     cout<<"Wrong input!!"<<endl;
