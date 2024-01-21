@@ -80,81 +80,10 @@ public:
 
 // 批量矩阵乘法
 
-    Tensor<T> batch_matmul(const Tensor<T> &other) const {
-        if (this->ndim != 3 || other.ndim != 3) {
-            throw std::invalid_argument("Batch_matmul requires both tensors to be 3D.");
-        }
 
-        // 假设*this的形状为(batch_size, m, n), other的形状为(batch_size, n, p)
-        // 结果的形状应该为(batch_size, m, p)
-        if (this->shape[1] != other.shape[1] || this->shape[0] != other.shape[0]) {
-            throw std::invalid_argument("Batch_matmul dimensions do not match.");
-        }
-
-        int batch_size = this->shape[0];
-        int m = this->shape[1];
-        int n = this->shape[2];
-        int p = other.shape[2];
-
-        std::vector<int> new_shape = {batch_size, m, p};
-        Tensor<T> result(new_shape);
-
-        for (int b = 0; b < batch_size; b++) {
-            for (int i = 0; i < m; i++) {
-                for (int j = 0; j < p; j++) {
-                    T sum = 0;
-                    for (int k = 0; k < n; k++) {
-                        sum += this->ptr[b * this->stride[0] + i * this->stride[1] + k] *
-                               other.ptr[b * other.stride[0] + k * other.stride[1] + j];
-                    }
-                    result.ptr[b * result.stride[0] + i * result.stride[1] + j] = sum;
-                }
-            }
-        }
-
-        return result;
-    }
 
 // 双线性变换
 
-    Tensor<T> bilinear(const Tensor<T> &A, const Tensor<T> &B) const {
-        if (this->ndim != 3 || A.ndim != 2 || B.ndim != 2) {
-            throw std::invalid_argument("Bilinear transformation requires specific tensor dimensions.");
-        }
-
-        // 假设*this的形状为(batch_size, n, m), A的形状为(n, p), B的形状为(m, q)
-        // 结果的形状应该为(batch_size, p, q)
-        if (this->shape[1] != A.shape[0] || this->shape[2] != B.shape[0]) {
-            throw std::invalid_argument("Bilinear transformation dimensions do not match.");
-        }
-
-        int batch_size = this->shape[0];
-        int n = this->shape[1];
-        int m = this->shape[2];
-        int p = A.shape[1];
-        int q = B.shape[1];
-
-        std::vector<int> new_shape = {batch_size, p, q};
-        Tensor<T> result(new_shape);
-
-        for (int b = 0; b < batch_size; b++) {
-            for (int i = 0; i < p; i++) {
-                for (int j = 0; j < q; j++) {
-                    T sum = 0;
-                    for (int k = 0; k < n; k++) {
-                        for (int l = 0; l < m; l++) {
-                            sum += this->ptr[b * this->stride[0] + k * this->stride[1] + l] *
-                                   A.ptr[k * A.stride[0] + i] *
-                                   B.ptr[l * B.stride[0] + j];
-                        }
-                    }
-                    result.ptr[b * result.stride[0] + i * result.stride[1]+ j] = sum;
-                }
-            }
-        }
-
-        return result;
-    }
 
     template<typename u>
     friend void operator-=(Tensor<u> &A, Tensor<u> &B);
@@ -1323,6 +1252,56 @@ public:
             int s = rhs[i] - 'a';
             op_labelsR.push_back(s);
         }
+        if(lhs.length()==7){
+            if(rhs.length()==3&&count==1&&Ta.size()==2){
+                vector<Tensor<T>*>res;
+                size_t re=0;
+                for (int kk = 0; kk < Ta[0]->shape[0]; ++kk) {
+                    Tensor<T>* tcv2 = Tensor<T>::ones({1,Ta[0]->shape[1], Ta[1]->shape[2]});
+                    for (int i = 0; i <Ta[0]->shape[1] ; ++i) {
+                        for (int j = 0; j < Ta[1]->shape[2]; ++j) {
+                            re=0;
+                            for (int k = 0; k < Ta[0]->shape[2]; ++k) {
+                                re+=(Ta[0]->ptr[k+Ta[0]->shape[2]*i+kk*Ta[0]->shape[1]*Ta[0]->shape[2]])*
+                                        Ta[1]->ptr[k*Ta[1]->shape[2]+j+kk*Ta[1]->shape[1]*Ta[1]->shape[2]];
+                            }
+                            int n = i;int m=j;
+                            std::string str_num = std::to_string(n);
+                            std::string str_num1 = std::to_string(m);
+                            tcv2->set_select({"0",str_num, str_num1}, re);
+                        }
+                    }
+                    res.push_back(tcv2);
+                }
+                result=Tensor<T>::concat(res);
+                return result;
+
+            }
+            else{cout<<"Wrong input!!!!!"<<endl;
+                return Ta[0];
+            }
+        }
+        if(lhs[0]=='.'){
+            if(Ta.size()>1){
+                cout<<"Wrong input!!"<<endl;
+                return  Ta[0];
+            }
+            else{
+                vector<int>s=Ta[0]->shape;
+                size_t size=s.size();
+                int lst=s[size-1];//last
+                int lsts=s[size-2];//last second
+                vector<int>fi;
+                for (int i = 0; i < size-2; ++i) {
+                    fi.push_back(i);
+                }
+                fi.push_back(size-1);
+                fi.push_back(size-2);
+                result=Tensor<T>::permute(Ta[0],fi);
+                return  result;
+            }
+
+        }
         if(lhs.length()==2&&rhs.length()==0&&count==0){
             Tensor<T>* t8 = Tensor<T>::ones({1, 1});
             size_t size=1;
@@ -1756,8 +1735,8 @@ void cpu_concat(Tensor<T> *A, vector<Tensor<T>*> t, unsigned int axis, bool deri
         src_stride = t[i]->stride[axis] * t[i]->shape[axis];
 
 // Copy n bytes from src to dest
-        float *dest = A->ptr + offset;
-        float *src = t[i]->ptr;
+        T *dest = A->ptr + offset;
+        T *src = t[i]->ptr;
 
 // Walk tensor i
         for (int j = 0; j < t[i]->size_; j++) {
