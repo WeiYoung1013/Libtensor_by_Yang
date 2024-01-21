@@ -411,6 +411,20 @@ int main() {
     t342->print();
     Tensor<int>* t330=Tensor<int>::einsum("ijk,ikl->ijl",t34);
     t330->print();
+     delete t341;
+    delete t342;
+    delete t330;
+    delete t100;
+    delete q101;
+    delete q102;
+    delete t10;
+    delete t11;
+    delete t5;
+    delete t6;
+    delete t7;
+    delete t8;
+    delete t9;
+    delete t88;
 
     // 3.2.1 serialization
 
