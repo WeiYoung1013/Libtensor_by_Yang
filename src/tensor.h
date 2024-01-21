@@ -814,7 +814,7 @@ public:
 
         // 确保t的梯度已初始化
         if (t->grad == nullptr) {
-        t->computeGradient();
+            t->computeGradient();
         }
 
         // 如果A没有梯度，则计算A的梯度
@@ -1434,6 +1434,56 @@ public:
             int s = rhs[i] - 'a';
             op_labelsR.push_back(s);
         }
+        if(lhs.length()==7){
+            if(rhs.length()==3&&count==1&&Ta.size()==2){
+                vector<Tensor<T>*>res;
+                size_t re=0;
+                for (int kk = 0; kk < Ta[0]->shape[0]; ++kk) {
+                    Tensor<T>* tcv2 = Tensor<T>::ones({1,Ta[0]->shape[1], Ta[1]->shape[2]});
+                    for (int i = 0; i <Ta[0]->shape[1] ; ++i) {
+                        for (int j = 0; j < Ta[1]->shape[2]; ++j) {
+                            re=0;
+                            for (int k = 0; k < Ta[0]->shape[2]; ++k) {
+                                re+=(Ta[0]->ptr[k+Ta[0]->shape[2]*i+kk*Ta[0]->shape[1]*Ta[0]->shape[2]])*
+                                    Ta[1]->ptr[k*Ta[1]->shape[2]+j+kk*Ta[1]->shape[1]*Ta[1]->shape[2]];
+                            }
+                            int n = i;int m=j;
+                            std::string str_num = std::to_string(n);
+                            std::string str_num1 = std::to_string(m);
+                            tcv2->set_select({"0",str_num, str_num1}, re);
+                        }
+                    }
+                    res.push_back(tcv2);
+                }
+                result=Tensor<T>::concat(res);
+                return result;
+
+            }
+            else{cout<<"Wrong input!!!!!"<<endl;
+                return Ta[0];
+            }
+        }
+        if(lhs[0]=='.'){
+            if(Ta.size()>1){
+                cout<<"Wrong input!!"<<endl;
+                return  Ta[0];
+            }
+            else{
+                vector<int>s=Ta[0]->shape;
+                size_t size=s.size();
+                int lst=s[size-1];//last
+                int lsts=s[size-2];//last second
+                vector<int>fi;
+                for (int i = 0; i < size-2; ++i) {
+                    fi.push_back(i);
+                }
+                fi.push_back(size-1);
+                fi.push_back(size-2);
+                result=Tensor<T>::permute(Ta[0],fi);
+                return  result;
+            }
+
+        }
         if(lhs.length()==2&&rhs.length()==0&&count==0){
             Tensor<T>* t8 = Tensor<T>::ones({1, 1});
             size_t size=1;
@@ -1867,8 +1917,8 @@ void cpu_concat(Tensor<T> *A, vector<Tensor<T>*> t, unsigned int axis, bool deri
         src_stride = t[i]->stride[axis] * t[i]->shape[axis];
 
 // Copy n bytes from src to dest
-        float *dest = A->ptr + offset;
-        float *src = t[i]->ptr;
+        T *dest = A->ptr + offset;
+        T *src = t[i]->ptr;
 
 // Walk tensor i
         for (int j = 0; j < t[i]->size_; j++) {
