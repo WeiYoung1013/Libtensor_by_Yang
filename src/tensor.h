@@ -881,199 +881,169 @@ public:
 // -----
 // mul
 
-    void mul_(T v){
-        Tensor::mul(this, this, v);
+    void mul_(T v) {
+        for (int i = 0; i < this->size_; ++i) {
+            this->ptr[i] *= v;
+        }
+        if(this->grad== nullptr){
+            this->computeGradient();
+        }
+        for (int i = 0; i < this->size_; ++i) {
+            this->grad->ptr[i] *= v;
+        }
     }
 
-    Tensor<T>* mul(T v){
-        Tensor *t = this->clone();
-        t->mul_(v);
-        return t;
+    Tensor<T>* mul(T v) {
+        Tensor<T> *result = this->clone();
+        result->mul_(v);
+        return result;
     }
 
-    void mul_(Tensor* A){
-        Tensor::mul(this, A, this);
-    }
-
-    Tensor<T>* mul(Tensor* A){
-
-        Tensor *t = this->clone();
-        t->mul_(A);
-
-        // 确保t的梯度已初始化
-        if (t->grad == nullptr) {
-            t->grad = Tensor<T>::empty(this->getShape());
+    Tensor<T>* mul(Tensor<T>* A) {
+        // 确保是二维矩阵且符合矩阵乘法的维度要求
+        if (this->shape.size() != 2 || A->shape.size() != 2 || this->shape[1] != A->shape[0]) {
+            throw std::invalid_argument("Incompatible dimensions for matrix multiplication.");
         }
 
-        // 如果A没有梯度，则计算A的梯度
-        if (A->grad == nullptr) {
-            A->grad = Tensor<T>::empty(A->getShape());
-            std::fill(A->grad->ptr, A->grad->ptr + A->size_, static_cast<T>(1));
-        }
+        int m = this->shape[0];
+        int n = A->shape[1];
+        int p = this->shape[1];
+        Tensor<T>* result = new Tensor<T>({m, n});
 
-        // 用t和A的值更新t的梯度
-        for (size_t i = 0; i < t->size_; ++i) {
-            t->grad->ptr[i] += A->ptr[i] * A->grad->ptr[i];
-        }
-        for (size_t i = 0; i < t->size_; ++i) {
-            t->grad->ptr[i] += this->ptr[i] * t->grad->ptr[i];
-        }
-
-        return t;
-    }
-
-    static  void mul(Tensor *A, Tensor *B, T v){
-        cpu_mul(A, B, v);
-    }
-
-    static  Tensor<T>* mul(Tensor *A, Tensor *B){
-        Tensor* C = Tensor::empty(A->getShape() );
-        Tensor::mul(A, B, C);
-        return C;
-    }
-
-
-    static  void mul(Tensor *A, Tensor *B, Tensor *C) {
-
-        Tensor::mul(1.0, A, 1.0, B, C, 0);
-
-
-        // 更新C的梯度
-        if (A->grad != nullptr || B->grad != nullptr) {
-            if (C->grad == nullptr) {
-                C->computeGradient();
-            } else {
-                C->grad_history.push_back(C->grad);
-                C->grad = Tensor<T>::empty(A->getShape());
+        // 执行矩阵乘法
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                T sum = 0;
+                for (int k = 0; k < p; ++k) {
+                    sum += this->ptr[i * p + k] * A->ptr[k * n + j];
+                }
+                result->ptr[i * n + j] = sum;
             }
+        }
 
-            if (A->grad != nullptr) {
-                // 使用A的梯度和B的值更新C的梯度
-                for (size_t i = 0; i < A->size_; ++i) {
-                    C->grad->ptr[i] += A->grad->ptr[i] * B->ptr[i];
+        if(this->grad== nullptr){
+            this->computeGradient();
+        }
+        if(A->grad== nullptr){
+            A->computeGradient();
+        }
+
+        if (this->grad != nullptr) {
+            // 创建一个用于存储梯度更新的新 Tensor
+            Tensor<T>* gradUpdate = new Tensor<T>(this->shape);
+
+            // 计算梯度更新：gradUpdate = result * A的转置
+            int q = A->shape[1];
+            for (int i = 0; i < m; ++i) {
+                for (int j = 0; j < p; ++j) {
+                    T sum = 0;
+                    for (int k = 0; k < q; ++k) {
+                        sum += result->ptr[i * q + k] * A->ptr[j * q + k]; // 注意：使用 A 的转置
+                    }
+                    gradUpdate->ptr[i * p + j] = sum;
                 }
             }
 
-            if (B->grad != nullptr) {
-                // 使用B的梯度和A的值更新C的梯度
-                for (size_t i = 0; i < B->size_; ++i) {
-                    C->grad->ptr[i] += B->grad->ptr[i] * A->ptr[i];
-                }
+            // 将梯度更新累加到 this 的梯度上
+            for (int i = 0; i < this->size_; ++i) {
+                this->grad->ptr[i] += gradUpdate->ptr[i];
             }
-        }
 
+            // 清理
+            delete gradUpdate;
+        }
+        result->grad= this->grad;
+
+
+
+        return result;
     }
 
 
-
-
-    static void mul(T scA, Tensor *A, T scB, Tensor *B, Tensor *C, int incC) {
-        ///////////////////////////////////////
-        //// sum C=(sca*A)+(scb*B)
-        //// or C+=(sca*A)+(scb*B) if incC is 1
-        //// Dimensions and types must be compatible
-        ///////////////////////////////////////
-        int aux = 0;
-
-        if ((!sameShape(A, B)) || (!sameShape(A, C))) {
-            msg("Incompatible dims", "Tensor::mul");
-        }
-        cpu_mul(scA, A, scB, B, C, incC);
-    }
 
 
 // -----div
 
-    void div_(T v){
-        Tensor::div(this, this, v);
-    }
-
-    Tensor<T>* div(T v){
-        Tensor *t = this->clone();
-        t->div_(v);
-        return t;
-    }
-
-    void div_(Tensor* A){
-        Tensor::div(this, A, this);
-    }
-
-    Tensor<T>* div(Tensor* A){
-        Tensor *t = this->clone();
-        t->div_(A);
-
-        // 确保t的梯度已初始化
-        if (t->grad == nullptr) {
-            t->grad = Tensor<T>::empty(this->getShape());
+    void div_(T v) {
+        for (int i = 0; i < this->size_; ++i) {
+            this->ptr[i] /= v;
         }
-
-        // 如果A没有梯度，则计算A的梯度
-        if (A->grad == nullptr) {
-            A->grad = Tensor<T>::empty(A->getShape());
-            std::fill(A->grad->ptr, A->grad->ptr + A->size_, static_cast<T>(1));
+        if(this->grad== nullptr){
+            this->computeGradient();
         }
-
-        // 更新t的梯度：被除数的梯度更新
-        for (size_t i = 0; i < t->size_; ++i) {
-            t->grad->ptr[i] += t->grad->ptr[i] / A->ptr[i];
+        for (int i = 0; i < this->size_; ++i) {
+            this->grad->ptr[i] /= v;
         }
-
-        // 更新t的梯度：除数的梯度更新
-        for (size_t i = 0; i < A->size_; ++i) {
-            A->grad->ptr[i] -= this->ptr[i] / (A->ptr[i] * A->ptr[i]);
-        }
-
-        return t;
     }
 
-    static   void div(Tensor *A, Tensor *B, T v){
-        cpu_div(A, B, v);
+    Tensor<T>* div(T v) {
+        Tensor<T> *result = this->clone();
+        result->div_(v);
+        return result;
     }
 
-    static  Tensor<T>* div(Tensor *A, Tensor *B){
-        Tensor* C = Tensor::empty(A->getShape() );
-        Tensor::div(A, B, C);
-        return C;
-    }
-
-    static    void div(Tensor *A, Tensor *B, Tensor *C) {
-        Tensor::div(1.0, A, 1.0, B, C, 0);
-        // 更新C的梯度
-        if (A->grad != nullptr || B->grad != nullptr) {
-            if (C->grad == nullptr) {
-                C->computeGradient();
-            } else {
-                C->grad_history.push_back(C->grad);
-                C->grad = Tensor<T>::empty(A->getShape());
+    void div_(Tensor<T>* A) {
+        // 检查是否可以进行广播
+        if (this->shape[1] == A->shape[1] && A->shape[0] == 1) {
+            // 广播除法
+            for (int i = 0; i < this->shape[0]; ++i) { // 对每一行
+                for (int j = 0; j < this->shape[1]; ++j) { // 对每一列
+                    this->ptr[i * this->shape[1] + j] /= A->ptr[j];
+                }
             }
+        } else if (this->shape == A->shape) {
+            // 正常逐元素除法
+            for (int i = 0; i < this->size_; ++i) {
+                this->ptr[i] /= A->ptr[i];
+            }
+        } else {
+            throw std::invalid_argument("Incompatible dimensions for element-wise division.");
+        }
 
-            if (A->grad != nullptr) {
-                for (size_t i = 0; i < A->size_; ++i) {
-                    A->grad->ptr[i] += C->grad->ptr[i] / B->ptr[i];
+
+        if(this->grad== nullptr){
+            this->computeGradient();
+        }
+        if(A->grad== nullptr){
+            A->computeGradient();
+        }
+        if (this->grad != nullptr) {
+            // 创建一个用于存储梯度更新的新 Tensor
+            Tensor<T>* gradUpdate = new Tensor<T>(this->shape);
+
+            if (A->shape[0] == 1) { // 广播情况
+                for (int i = 0; i < this->shape[0]; ++i) {
+                    for (int j = 0; j < this->shape[1]; ++j) {
+                        // 使用适当的梯度更新公式
+                        gradUpdate->ptr[i * this->shape[1] + j] = this->grad->ptr[i * this->shape[1] + j] / A->ptr[j];
+                    }
+                }
+            } else { // 正常逐元素除法
+                for (int i = 0; i < this->size_; ++i) {
+                    // 使用适当的梯度更新公式
+                    gradUpdate->ptr[i] = this->grad->ptr[i] / A->ptr[i];
                 }
             }
 
-            if (B->grad != nullptr) {
-                for (size_t i = 0; i < B->size_; ++i) {
-                    B->grad->ptr[i] -= A->ptr[i] * C->grad->ptr[i] / (B->ptr[i] * B->ptr[i]);
-                }
+            // 将梯度更新累加到 this 的梯度上
+            for (int i = 0; i < this->size_; ++i) {
+                this->grad->ptr[i] += gradUpdate->ptr[i];
             }
+
+            // 清理
+            delete gradUpdate;
         }
 
-    }
-    static  void div(T scA, Tensor *A, T scB, Tensor *B, Tensor *C, int incC) {
-        ///////////////////////////////////////
-        //// sum C=(sca*A)+(scb*B)
-        //// or C+=(sca*A)+(scb*B) if incC is 1
-        //// Dimensions and types must be compatible
-        ///////////////////////////////////////
-        int aux = 0;
 
-        if ((!sameShape(A, B)) || (!sameShape(A, C))) {
-            msg("Incompatible dims", "Tensor::div");
-        }
-        cpu_div(scA, A, scB, B, C, incC);
     }
+
+    Tensor<T>* div(Tensor<T>* A) {
+        Tensor<T> *result = this->clone();
+        result->div_(A);
+        return result;
+    }
+
+
 
 // - *3
 
@@ -1657,7 +1627,7 @@ Tensor<u>& operator+ (u v, Tensor<u> &A) {
 template <typename u>
 // - *3
 Tensor<u>& operator* (Tensor<u> &A, Tensor<u> &B) {
-    Tensor<u>* t = Tensor<u>::mul(&A, &B);
+    Tensor<u>* t = A.mul(&B);
     return (*t);
 }
 template <typename u>
@@ -1717,7 +1687,7 @@ void operator-= (Tensor<u> &A, u v) {
 }
 template <typename u>
 Tensor<u>& operator/ (Tensor<u> &A, Tensor <u>&B) {
-    Tensor<u>* t = Tensor<u>::div(&A, &B);
+    Tensor<u>* t = A.div(&B);
     return (*t);
 }
 template <typename u>

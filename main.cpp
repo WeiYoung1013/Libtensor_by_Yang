@@ -216,11 +216,15 @@ int main() {
     // 3.1 mul
     std::cout << "-----------------[3.1] mul-----------------" << std::endl;
 
+    Tensor<float>* changshu = Tensor<float>::rand({3,3});
+    changshu->print();
+    Tensor<float>* changshu2=changshu->mul(2.0f);
+    changshu2->print();
+
     Tensor<float>* t8qcsq = Tensor<float>::rand({3, 4});
-    Tensor<float>* t8qcsq2 = Tensor<float>::rand({3, 4});
+    Tensor<float>* t8qcsq2 = Tensor<float>::rand({4, 5});
     // 矩阵对应元素相加
-    Tensor<float>* t8qcsq3 = Tensor<float>::mul(t8qcsq, t8qcsq2);
-    //Tensor* t8qcsq4 = Tensor::mul(t8qcsq3, 6);
+    Tensor<float>* t8qcsq3 = t8qcsq->mul(t8qcsq2);
     t8qcsq3->print();
 
     Tensor <float>qcv2d5 = Tensor<float>({-0.1372, -0.1372,   0.2097,  1.2097}, {2,2} );
@@ -233,25 +237,24 @@ int main() {
     delete t8qcsq2;
     delete t8qcsq3;
 
-    // 3.1 mul
+    // 3.1 div
     std::cout << "-----------------[3.1] div-----------------" << std::endl;
 
     Tensor<double>* t8qcaq = Tensor<double>::rand({3, 4});
-    Tensor<double>* t8qcaq2 = Tensor<double>::rand({3, 4});
-    // 矩阵对应元素相加
-    Tensor<double>* t8qcaq3 = Tensor<double>::div(t8qcaq, t8qcaq2);
-    //Tensor* t8qcaq4 = Tensor::div(t8qcaq3, t8qcaq4);
+    Tensor<double>* t8qcaq2 = Tensor<double>::rand({1, 4});
+    Tensor<double>* t8qcaq3 = t8qcaq->div(t8qcaq2);
     t8qcaq3->print();
 
-    Tensor <double>qcv2qd5 = Tensor<double>({-0.1372, -0.1372,   0.2097,  1.2097}, {2,2} );
-    Tensor <double>qcv2qd6 = Tensor<double>({-0.5792, -0.1372,   0.5962,  1.2097}, {2,2} );
+    Tensor <float>qcv2qd5 = Tensor<float>({-0.3711, -1.9353, -0.4605, -0.2917,0.1815, -1.0111,  0.9805, -1.5923, 0.1062,  1.4581,  0.7759, -1.2344,-0.1830, -0.0313,  1.1908, -1.4757}, {4,4} );
+    Tensor <float>qcv2qd6 = Tensor<float>({0.8032,  0.2930, -0.8113, -0.2308}, {1,4} );
     // 运算符重载
-    Tensor <double>qcv2qd7 = qcv2qd5 / qcv2qd6;
-    qcv2d7.print();
+    Tensor <float>qcv2qd7 = qcv2qd5 / qcv2qd6;
+    qcv2qd7.print();
 
     delete t8qcaq;
     delete t8qcaq2;
     delete t8qcaq3;
+
 
 
     // 3.1.1 log
