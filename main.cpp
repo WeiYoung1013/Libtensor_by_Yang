@@ -3,13 +3,16 @@
 #include <iostream>
 #include <vector>
 #include <array>
-
+#include <chrono>
 #ifdef _WIN32
 #include <Windows.h>
 #endif // _WIN32
-
+#include <omp.h>
+#include <iomanip>
+#include <stdexcept>
+#include <chrono>
 #include "src/tensor.h"
-
+using namespace chrono;
 int main() {
 
 #ifdef _WIN32
@@ -398,34 +401,43 @@ int main() {
     ssd.push_back(q102);
     Tensor<int>* t100 = Tensor<int>::einsum("i,j->ij", ssd); // 内积
     t100->print();
-
+    std::cout << "-----------------[3.4.11] Einsum operations  Batch matrix mul, ijk,ikl->ijl-----------------" << std::endl;
+    vector<Tensor<int>*>t34;
+    Tensor<int>* t341 = Tensor<int>::rand({2,3,4}, 3.0);
+    Tensor<int>* t342 = Tensor<int>::rand({2,4,3}, 3.0);
+    t34.push_back(t341);
+    t34.push_back(t342);
+    t341->print();
+    t342->print();
+    Tensor<int>* t330=Tensor<int>::einsum("ijk,ikl->ijl",t34);
+    t330->print();
 
     // 3.2.1 serialization
 
-      std::cout << "-----------------[3.2.1]serialization-----------------" << std::endl;
-      // 序列化 tensor
-      Tensor<float>* te00i =  Tensor<float>::rand({6, 3, 2}, 5.0f);
-      te00i->print();
+    std::cout << "-----------------[3.2.1]serialization-----------------" << std::endl;
+    // 序列化 tensor
+    Tensor<float>* te00i =  Tensor<float>::rand({6, 3, 2}, 5.0f);
+    te00i->print();
 
-      te00i->save("tensor.txt");
-      cout<<"finish save"<<endl;
+    te00i->save("tensor.txt");
+    cout<<"finish save"<<endl;
 
-      Tensor<float>* te02i = Tensor<float>::load("tensor.txt");
-      cout<<"finish load"<<endl;
-      te02i->print();
+    Tensor<float>* te02i = Tensor<float>::load("tensor.txt");
+    cout<<"finish load"<<endl;
+    te02i->print();
 
-      // cout
-      std::cout << "-----------------cout-----------------" << std::endl;
-      std::cout << *te02i << std::endl;
-      std::cout << "-----------------size-----------------" << std::endl;
-      std::cout << te02i->size() << std::endl;
+    // cout
+    std::cout << "-----------------cout-----------------" << std::endl;
+    std::cout << *te02i << std::endl;
+    std::cout << "-----------------size-----------------" << std::endl;
+    std::cout << te02i->size() << std::endl;
 
-      std::cout << "-----------------data_ptr-----------------" << std::endl;
-      std::cout << te02i->data_ptr() << std::endl;
+    std::cout << "-----------------data_ptr-----------------" << std::endl;
+    std::cout << te02i->data_ptr() << std::endl;
 
 
-      delete te00i;
-      delete te02i;
+    delete te00i;
+    delete te02i;
 
 
 
@@ -491,17 +503,17 @@ int main() {
 
     std::cout << "-----------------[Test Gradient-history]-----------------" << std::endl;
 
-     tensorA->backward();
+    tensorA->backward();
 
-     delete tensorA;
-        delete tensorB;
-        delete tensorAdd;
-        delete tensorSub;
-        delete tensorMul;
-        delete tensorDiv;
-        delete tensorLog2;
-        delete tensorLog10;
-        delete tensorLogn;
+    delete tensorA;
+    delete tensorB;
+    delete tensorAdd;
+    delete tensorSub;
+    delete tensorMul;
+    delete tensorDiv;
+    delete tensorLog2;
+    delete tensorLog10;
+    delete tensorLogn;
 
 
     std::cout << "-----------------[Test Determinant of Square Matrix]-----------------" << std::endl;
@@ -516,8 +528,101 @@ int main() {
 
 
     Tensor<float>* tensorNonSquare = new Tensor<float>({0.5, 1.5, 2.5, 3.5, 4.5}, {2, 3});
-    cout<<tensorNonSquare->determinant();
+    cout<<tensorNonSquare->determinant()<<endl;
+    cout<<"acceleration with openMp"<<endl;
+    auto start_serial = high_resolution_clock::now();
+    Tensor<float> v7 = qcv5 + qcv6;
+    Tensor <float>v2d7 = qcv2d5 * qcv2d6;
+    Tensor <float>v2qd7 = qcv2qd5 / qcv2qd6;
+    for (int i = 0; i < 100000; ++i) {
+        v7=v7+qcv5;
+        v7=v7+qcv6;
+    }
+    for (int i = 0; i < 100000; ++i) {
+        v2d7=v2d7*qcv2d5*qcv2d6;
+    }
+    for (int i = 0; i < 100000; ++i) {
+        v2d7=v2d7/qcv2d5;
+        v2d7=v2d7/qcv2d6;
+    }
+    Tensor<float> v8 = qcv5 + qcv6;
+    for (int i = 0; i < 100000; ++i) {
+        v8=v8-qcv5;
+        v8=v8-qcv6;
+    }
+    auto stop_serial = high_resolution_clock::now();
+    auto duration_serial = duration_cast<microseconds>(stop_serial - start_serial);
 
+    omp_set_num_threads(4);
+    // 使用OpenMP并行化运算
+    auto start_parallel = high_resolution_clock::now();
+#pragma omp parallel default(none) shared(cout, qcv5, qcv6,qcv2d5,qcv2d6)
+    {
+#pragma omp sections
+        {
+#pragma omp section
+            { Tensor<float> v88 = qcv5 + qcv6;
+                // 并行化加法运算
+#pragma omp parallel for default(none) shared(cout, qcv5, qcv6, v88)
+                for (int i = 0; i < 100000; ++i) {
+                    v88=v88+qcv5;
+                    v88=v88+qcv6;
+                }
 
+#pragma omp critical
+                {
+
+                }
+            }
+
+#pragma omp section
+            {    Tensor <float>v2d88 = qcv2d5 * qcv2d6;
+                // 并行化乘法运算
+
+#pragma omp parallel for default(none) shared(cout, qcv2d5 , qcv2d6, v2d88)
+                for (int i = 0; i < 100000; ++i) {
+                    v2d88=qcv2d5*v2d88;
+                    v2d88= qcv2d6* v2d88;
+                }
+#pragma omp critical
+                {
+
+                }
+            }
+
+#pragma omp section
+            {
+                // 并行化减法运算
+                Tensor<float> v887 = qcv5 - qcv6;
+#pragma omp parallel for default(none) shared(cout, qcv5 , qcv6, v887)
+                for (int i = 0; i < 100000; ++i) {
+                    v887=v887-qcv5;
+                    v887=v887-qcv6;
+                }
+#pragma omp critical
+                {
+
+                }
+            }
+
+#pragma omp section
+            {
+                // 并行化除法运算
+                Tensor <float>v2qd88 = qcv5  / qcv6;
+#pragma omp parallel for default(none) shared(cout, qcv5, qcv6, v2qd88)
+                for (int i = 0; i < 100000; ++i) {
+                    v2qd88=v2qd88/qcv5;
+                    v2qd88=v2qd88/qcv6;
+                }
+#pragma omp critical
+                {
+                }
+            }
+        }
+    }
+    auto stop_parallel = high_resolution_clock::now();
+    auto duration_parallel = duration_cast<microseconds>(stop_parallel - start_parallel);
+    cout << "raw Duration: " << duration_serial.count() << " microseconds" << endl;
+    cout << "openmp Duration: " << duration_parallel.count() << " microseconds" << endl;
     return 0;
 }
