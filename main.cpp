@@ -137,6 +137,9 @@ int main() {
     Tensor<int>* tlchy = Tensor<int>::ones({4, 4});
     tlchy->set_select({"0", "2"}, 2.0f); // 把(0, 2) 设置 2
     tlchy->print();
+    Tensor<int>* tlschy = Tensor<int>::ones({1,4, 4});
+    tlschy->set_select({"0","1", "2"}, 2.0f); // 把(0, 2) 设置 2
+    tlschy->print();
 
     Tensor<int>* tlchy2 = Tensor<int>::ones({4, 4});
     tlchy2->set_select({":", "2"}, 5.0f);  // 第3列设置为 5
@@ -154,6 +157,10 @@ int main() {
     std::cout << "-----------------[2.4] permute-----------------" << std::endl;
     Tensor<int>* tuzku = Tensor<int>::rand({3, 4}, 7.0);
     tuzku->print();
+    Tensor<int>* tku = Tensor<int>::rand({2,3, 4}, 7.0);
+    tku->print();
+    Tensor<int> *tuz2 = Tensor<int>::permute(tku, {2,1, 0});
+    tuz2->print();
 
     // 转置 二维矩阵 3,4 -> 4，3
     Tensor<int> *tuzku2 = Tensor<int>::permute(tuzku, {1, 0});
@@ -348,6 +355,13 @@ int main() {
     std::cout << "-----------------[3.4.2] Einsum operations ij->ji-----------------" << std::endl;
     Tensor<float>* t9 = Tensor<float>::einsum("gy->yg", first); // 矩阵反转
     t9->print();
+    std::cout << "-----------------[3.4.3] Einsum operations ...ij->...ji-----------------" << std::endl;
+    vector<Tensor<float>*>ssd3;
+    Tensor<float>* t233 = Tensor<float>::rand({2,3,4}, 1.0);
+    ssd3.push_back(t233);
+    t233->print();
+    Tensor<float>* t33= Tensor<float>::einsum("...ij->...ji", ssd3); // 矩阵反转
+    t33->print();
     std::cout << "-----------------[3.4.4] Einsum operations ij->-----------------" << std::endl;
     Tensor<float>* t88 = Tensor<float>::einsum("gy->", first); // 求和
     t88->print();
@@ -369,6 +383,8 @@ int main() {
     Tensor <int>*q2 = new Tensor<int>({0,1,2,3,4,5,6,7,8,9,10,11,12,13,14}, {3,5} );
     ssd.push_back(q1);
     ssd.push_back(q2);
+    q1->print();
+    q2->print();
     Tensor<int>* t = Tensor<int>::einsum("ab,bc->ac", ssd);
     t->print();
     std::cout << "-----------------[3.4.8] Einsum operations i,i->i-----------------" << std::endl;
@@ -392,7 +408,16 @@ int main() {
     ssd.push_back(q102);
     Tensor<int>* t100 = Tensor<int>::einsum("i,j->ij", ssd); // 内积
     t100->print();
-
+    std::cout << "-----------------[3.4.11] Einsum operations  Batch matrix mul, ijk,ikl->ijl-----------------" << std::endl;
+    vector<Tensor<int>*>t34;
+    Tensor<int>* t341 = Tensor<int>::rand({2,3,4}, 3.0);
+    Tensor<int>* t342 = Tensor<int>::rand({2,4,3}, 3.0);
+    t34.push_back(t341);
+    t34.push_back(t342);
+    t341->print();
+    t342->print();
+    Tensor<int>* t330=Tensor<int>::einsum("ijk,ikl->ijl",t34);
+    t330->print();
     // 3.2.1 serialization
     /*  std::cout << "-----------------[3.2.1]serialization-----------------" << std::endl;
       // 序列化 tensor
