@@ -428,8 +428,16 @@ int main() {
     Tensor<float>* t6 = Tensor<float>::einsum("ss->a", first); // This computes the diagonal of t1.
     t6->print();
     std::cout << "-----------------[3.4.2] Einsum operations ij->ji-----------------" << std::endl;
+
     Tensor<float>* t9 = Tensor<float>::einsum("gy->yg", first); // 矩阵反转
     t9->print();
+    std::cout << "-----------------[3.4.3] Einsum operations ...ij->...ji-----------------" << std::endl;
+    Tensor<int>* t222 = Tensor<int>::rand({2,2, 4}, 4.0);
+    t222->print();
+    vector<Tensor<int>*>sssssd;
+    sssssd.push_back(t222);
+    Tensor<int>* t1000 = Tensor<int>::einsum("...gj->...jg", sssssd); // 矩阵反转
+    t1000->print();
     std::cout << "-----------------[3.4.4] Einsum operations ij->-----------------" << std::endl;
     Tensor<float>* t88 = Tensor<float>::einsum("gy->", first); // 求和
     t88->print();
