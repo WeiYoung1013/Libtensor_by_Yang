@@ -21,6 +21,8 @@
 #include <stdexcept>
 #include <sstream>
 #include <fstream>
+#include <memory>
+#include <algorithm>
 
 #include "utils.h"
 #include "tensor_descriptors.h"
@@ -60,9 +62,9 @@ class Tensor {
 public:
     unsigned int ndim;
     unsigned long int size_;
-
     // 数据指针
     T *ptr = nullptr;
+    std::shared_ptr<unsigned int> ref_count;
 
     // 张量的尺寸
     std::vector<int> shape;
@@ -184,20 +186,22 @@ public:
 
 
 // 1.1 无参构造函数
-    Tensor() : ndim(0), size_(0) {}
-// 1.2 传入 shape 每个维度的大小
-    Tensor(const std::vector<int> &shape) {
-        // Tensor(shape, nullptr, dev)
+    // 1.1 无参构造函数
+    // 1.1 无参构造函数
+    Tensor() : ndim(0), size_(0), ref_count(new unsigned int(1)) {}
+
+    // 1.2 传入 shape 每个维度的大小
+    Tensor(const std::vector<int> &shape)
+            : ref_count(new unsigned int(1)) {
         updateShape(shape);
         updateSize();
         updateStrides();
         updateData();
     }
 
-// 1.3 传入 一维度的data做数据 传入
-// shape 每个维度的大小
-
-    Tensor(const std::vector<T>& data, const std::vector<int> &shape) {
+    // 1.3 传入线性维度的data作为数据, shape 用于刻画每个维度的大小
+    Tensor(const std::vector<T>& data, const std::vector<int> &shape)
+            : ref_count(new unsigned int(1)) {
         updateShape(shape);
         updateSize();
         updateStrides();
@@ -206,7 +210,8 @@ public:
     }
 
 
-// 析构函数
+
+    // 析构函数
     ~Tensor() {
         this->deleteData();
     }
@@ -271,6 +276,58 @@ public:
         }
 
         return 1;
+    }
+    T max() const {
+        if (!ptr || size_ == 0) {
+            // 处理空指针或大小为0的情况
+            throw std::runtime_error("Tensor is empty.");
+        }
+
+        return *std::max_element(ptr, ptr + size_);
+    }
+    T min() const {
+        if (!ptr || size_ == 0) {
+            // 处理空指针或大小为0的情况
+            throw std::runtime_error("Tensor is empty.");
+        }
+
+        return *std::min_element(ptr, ptr + size_);
+    }
+    Tensor<bool>le(const Tensor<T>& other) const {
+        if (this->shape != other.shape) {
+            throw std::invalid_argument("Incompatible dimensions for comparison.");
+        }
+
+        Tensor<bool> result(this->shape);
+        for (int i = 0; i < this->size_; ++i) {
+            result.ptr[i] = this->ptr[i] <= other.ptr[i];
+        }
+        return result;
+    }
+    Tensor<bool> le(T value) const {
+        Tensor<bool> result(this->shape);
+        for (int i = 0; i < this->size_; ++i) {
+            result.ptr[i] = this->ptr[i] <= value;
+        }
+        return result;
+    }
+    Tensor<bool>lt(const Tensor<T>& other) const {
+        if (this->shape != other.shape) {
+            throw std::invalid_argument("Incompatible dimensions for comparison.");
+        }
+
+        Tensor<bool> result(this->shape);
+        for (int i = 0; i < this->size_; ++i) {
+            result.ptr[i] = this->ptr[i] < other.ptr[i];
+        }
+        return result;
+    }
+    Tensor<bool> lt(T value) const {
+        Tensor<bool> result(this->shape);
+        for (int i = 0; i < this->size_; ++i) {
+            result.ptr[i] = this->ptr[i] < value;
+        }
+        return result;
     }
 
 //-----------------------
@@ -631,6 +688,26 @@ public:
         Tensor::copy(temp, this);  // copy data
 
         delete temp;
+    }
+    Tensor<T>* transpose(const vector<int>& dims){
+        Tensor* t_new = Tensor::transpose(this, dims);
+        return t_new;
+    }
+    static Tensor<T>*  transpose(Tensor* A, const vector<int>& dims) {
+        // Build descriptor
+        if(dims[0]!=0&&dims[1]!=1)return nullptr;
+        auto *sd = new PermuteDescriptor({1,0} );
+        sd->build(A->shape);
+
+        // Initialize new tensor
+        auto *new_t = new Tensor(sd->oshape );
+
+        // Fill new tensor
+        Tensor::select(A, new_t, sd);
+
+        delete sd;
+        return new_t;
+
     }
 
     Tensor<T>* permute(const vector<int>& dims){
@@ -1382,9 +1459,16 @@ public:
     }
 
     void* data_ptr() {
-        return this->ptr;
+        return &this->ref_count;
     }
 
+    T mean() const {
+        T sum = 0;
+        for (int i = 0; i < this->size_; ++i) {
+            sum += this->ptr[i];
+        }
+        return sum / this->size_;
+    }
 
     static void reverseString(string &str) {
         int start = 0;
