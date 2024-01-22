@@ -21,11 +21,14 @@ int main() {
 
     //初始化随机数种子
     srand((unsigned)(100));
-
+    int fi=1;
     // 1. 生成 2 * 2 张量
+
     std::cout << "-----------------[1.1.1] create 2 * 2-----------------" << std::endl;
     Tensor<float>* t8s3g = new Tensor<float>({-0.5792, -0.1372,   0.5962,  1.2097}, {2,2} );
     t8s3g->print();
+
+
     delete t8s3g;
 
     // 2. 生成 2 * 3 * 3 张量
@@ -90,6 +93,8 @@ int main() {
 
     Tensor<double>* tw1092 = tw109->select({"0", "2"});  // 取 (0,2) 的数据
     tw1092->print();
+    cout<<tw109->data_ptr()<<endl;
+    cout<<tw1092->data_ptr()<<endl;
 
     Tensor<double>* tw1093 = tw109->select({"1", ":"});  // 取 第2行 的数据
     tw1093->print();
@@ -150,6 +155,7 @@ int main() {
     delete tlchy2;
     delete tlchy3;
 
+
     // permute
     std::cout << "-----------------[2.4] permute-----------------" << std::endl;
     Tensor<int>* tuzku = Tensor<int>::rand({3, 4}, 7.0);
@@ -158,8 +164,11 @@ int main() {
     // 转置 二维矩阵 3,4 -> 4，3
     Tensor<int> *tuzku2 = Tensor<int>::permute(tuzku, {1, 0});
     tuzku2->print();
+    Tensor<int> *tuzku3 = Tensor<int>::transpose(tuzku,{0,1});
+    tuzku3->print();
     delete tuzku;
     delete tuzku2;
+
 
     // view
     std::cout << "-----------------[2.5] view-----------------" << std::endl;
@@ -269,6 +278,20 @@ int main() {
     tmd451->print();
     delete tmd45;
     delete tmd451;
+    Tensor<double>* tmd46 = Tensor<double>::rand({4, 4}, 5.0f);
+    tmd46->print();
+    Tensor<double>* tmd461 = tmd46->log10();
+    tmd461->print();
+    delete tmd46;
+    delete tmd461;
+
+    Tensor<double>* tmd47 = Tensor<double>::rand({4, 4}, 5.0f);
+    tmd47->print();
+    Tensor<double>* tmd471 = tmd47->logn(3);
+    tmd471->print();
+    delete tmd47;
+    delete tmd471;
+
 
 
 
@@ -293,6 +316,17 @@ int main() {
     delete ty369;
     delete ty3692;
     delete ty3693; //delete t8qcv4;
+    std::cout << "-----------------[3.2.1,2,3] mean,max,min-----------------" << std::endl;
+
+    Tensor<float>* ten= Tensor< float>::rand({2, 2}, 5.0f);
+    ten->print();
+    float meanValue = ten->mean();
+    float maxValue = ten->max();
+    float minValue = ten->min();
+    std::cout << "Mean value: " << meanValue << std::endl;
+    std::cout << "Max value: " << maxValue << std::endl;
+    std::cout << "Min value: " << minValue << std::endl;
+    delete ten; //delete t8qcv4;
 
     // 3.3 Comparison operations
     std::cout << "-----------------[3.3] Comparison operations-----------------" << std::endl;
@@ -328,6 +362,45 @@ int main() {
     delete t8ac105;
     delete t8ac1051;
     delete t8ac1052;
+    // 3.3 Comparison operations nequal
+    std::cout << "-----------------[3.3] Comparison nequal-----------------" << std::endl;
+    Tensor<double>* t8ac50 = new Tensor<double>( {0, 0.2, 0, 0, 0, 0.2, 0.2, 0}, {2, 2, 2} );
+    Tensor<double>* t8ac501 = Tensor<double>::full(t8ac50->shape, 0.2);
+
+    // 满足条件的相对位置为1 不满足为0
+    Tensor<double>* t8ac502 = t8ac50->nequal(t8ac501);
+    t8ac502->print( );
+
+    delete t8ac50;
+    delete t8ac501;
+    delete t8ac502;
+    std::cout << "-----------------[3.3] Comparison le and lt Operation -----------------" << std::endl;
+    Tensor<double>* tensor1 = new Tensor<double>({0.5, 1.0, 1.5, 2.0}, {2, 2});
+    double constant = 1.0;
+
+// 比较 tensor1 中的每个元素是否小于等于 constant
+    Tensor<bool> result1 = tensor1->le(constant);
+    Tensor<bool> result3 = tensor1->lt(constant);
+    result1.print();
+    result3.print();
+
+    delete tensor1;
+    std::cout << "-----------------[Test le lt Operation with Tensor]-----------------" << std::endl;
+    Tensor<int>* tensor2 = new Tensor<int>({1, 2 ,3, 4}, {2, 2});
+    Tensor<int>* tensor3 = new Tensor<int>({1, 1, 4, 4}, {2, 2});
+
+// 比较 tensor2 和 tensor3 中相应位置的元素
+    Tensor<bool>result2 = tensor2->le(*tensor3);
+    Tensor<bool>result4 = tensor2->lt(*tensor3);
+    result2.print();
+    result4.print();
+
+    delete tensor2;
+    delete tensor3;
+
+
+
+
 
 
 
@@ -411,7 +484,7 @@ int main() {
     t342->print();
     Tensor<int>* t330=Tensor<int>::einsum("ijk,ikl->ijl",t34);
     t330->print();
-     delete t341;
+    delete t341;
     delete t342;
     delete t330;
     delete t100;
@@ -425,7 +498,6 @@ int main() {
     delete t8;
     delete t9;
     delete t88;
-
     // 3.2.1 serialization
 
     std::cout << "-----------------[3.2.1]serialization-----------------" << std::endl;
@@ -543,7 +615,7 @@ int main() {
 
     Tensor<float>* tensorNonSquare = new Tensor<float>({0.5, 1.5, 2.5, 3.5, 4.5}, {2, 3});
     cout<<tensorNonSquare->determinant()<<endl;
-    cout<<"acceleration with openMp"<<endl;
+    cout<<"---------acceleration with openMp--------"<<endl;
     auto start_serial = high_resolution_clock::now();
     Tensor<float> v7 = qcv5 + qcv6;
     Tensor <float>v2d7 = qcv2d5 * qcv2d6;
