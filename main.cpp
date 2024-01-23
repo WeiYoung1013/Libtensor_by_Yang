@@ -14,8 +14,7 @@
 #include "src/tensor.h"
 using namespace chrono;
 int main() {
-ios::sync_with_stdio(false);
-cin.tie(nullptr);cout.tie(nullptr);
+
 #ifdef _WIN32
     //SetConsoleOutputCP(CP_UTF8);
 #endif // _WIN32
@@ -106,11 +105,32 @@ cin.tie(nullptr);cout.tie(nullptr);
     Tensor<double>* tw1095 = tw109->select({"0:2", "0:2"}); // 取前2列的前2行
     tw1095->print();
 
+
+
     delete tw109;
     delete tw1092;
     delete tw1093;
     delete tw1094;
     delete tw1095;
+
+    Tensor<double>* ttw109 = Tensor<double>::rand({4, 6});
+    Tensor<double>* ttw1092 = ttw109->select({"0", "2"});
+    std::cout << ttw109->access({0, 2}) << " " << ttw1092->access({0, 0}) << "\n";
+    std::cout << &ttw109->access({0, 2}) << " " << &ttw1092->access({0, 0}) << "\n";
+    Tensor<double>* ttw1093 = ttw109->select({"1", ":"});
+    std::cout << ttw109->access({1, 0}) << " " << ttw1093->access({0, 0}) << "\n";
+    std::cout << &ttw109->access({1, 0}) << " " << &ttw1093->access({0, 0}) << "\n";
+    Tensor<double>* ttw1094 = ttw109->select({":", "2"});
+    std::cout << ttw109->access({0, 2}) << " " << ttw1094->access({0, 0}) << "\n";
+    std::cout << &ttw109->access({0, 2}) << " " << &ttw1094->access({0, 0}) << "\n";
+    Tensor<double>* ttw1095 = ttw109->select({"0:2", "0:2"});
+    std::cout << ttw109->access({1, 1}) << " " << ttw1095->access({1, 1}) << "\n";
+    std::cout << &ttw109->access({1, 1}) << " " << &ttw1095->access({1, 1}) << "\n";
+    delete ttw109;
+    delete ttw1092;
+    delete ttw1093;
+    delete ttw1094;
+    delete ttw1095;
 
     //  2.2 join and tile
     std::cout << "-----------------[2.2] join and tile-----------------" << std::endl;
@@ -152,9 +172,18 @@ cin.tie(nullptr);cout.tie(nullptr);
     tlchy3->set_select({"0:1", "0:1"}, 7.0f);  // 前两行前两列 为 7
     tlchy3->print();
 
+
+    Tensor<int>* tlchy1 = Tensor<int>::ones({4, 4});
+    Tensor<int>* tlchy12 = tlchy1->select({"0:2", "0:2"});
+    tlchy12->set_select({":", "1"}, 5.0f);
+    tlchy1->print();
+    tlchy12->print();
+
     delete tlchy;
     delete tlchy2;
     delete tlchy3;
+    delete tlchy1;
+    delete tlchy12;
 
 
     // permute
@@ -167,6 +196,9 @@ cin.tie(nullptr);cout.tie(nullptr);
     tuzku2->print();
     Tensor<int> *tuzku3 = Tensor<int>::transpose(tuzku,{0,1});
     tuzku3->print();
+    std::cout << tuzku->access({0, 1}) << " " << tuzku2->access({1, 0}) << " " << tuzku3->access({1, 0}) << "\n";
+    std::cout << &tuzku->access({0, 1}) << " " << &tuzku2->access({1, 0}) << " " << &tuzku3->access({1, 0}) << "\n";
+
     delete tuzku;
     delete tuzku2;
 
@@ -180,6 +212,15 @@ cin.tie(nullptr);cout.tie(nullptr);
     // 维度变换 4*3*2 变换 2*2*2
     tod8r->reshape_({2, 3, 4});
     tod8r->print( );
+
+    Tensor<float>* tod8r2 = Tensor<float>::rand({4, 3, 2}, 1.0);
+    Tensor<float>* tod8r1 = tod8r2->reshape({2, 3, 4});
+    std::cout << tod8r2->access({1, 1, 1}) << " " << tod8r1->access({0, 2, 1}) << "\n";
+    std::cout << &tod8r2->access({1, 1, 1}) << " " << &tod8r1->access({0, 2, 1}) << "\n";
+    std::cout << tod8r2->access({1, 2, 1}) << " " << tod8r1->access({0, 2, 3}) << "\n";
+    std::cout << &tod8r2->access({1, 2, 1}) << " " << &tod8r1->access({0, 2, 3}) << "\n";
+    delete tod8r2;
+    delete tod8r1;
 
     delete tod8r;
 
