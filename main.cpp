@@ -87,21 +87,20 @@ int main() {
 
     //  2.1 index and select
     std::cout << "-----------------[2.1] index-----------------" << std::endl;
-
+    cout<<"展示index和select操作，创建随机{4,6}的张量"<<endl;
     Tensor<double>* tw109 = Tensor<double>::rand({4, 6});
     tw109->print();
-
+    cout<<"取 (0,2) 的数据"<<endl;
     Tensor<double>* tw1092 = tw109->select({"0", "2"});  // 取 (0,2) 的数据
     tw1092->print();
-    cout<<tw109->data_ptr()<<endl;
-    cout<<tw1092->data_ptr()<<endl;
 
+    cout<<"取 第2行 的数据"<<endl;
     Tensor<double>* tw1093 = tw109->select({"1", ":"});  // 取 第2行 的数据
     tw1093->print();
-
+    cout<<" 取 第3列 的数据"<<endl;
     Tensor<double>* tw1094 = tw109->select({":", "2"});  // 取 第3列 的数据
     tw1094->print();
-
+    cout<<"取前2列的前2行"<<endl;
     Tensor<double>* tw1095 = tw109->select({"0:2", "0:2"}); // 取前2列的前2行
     tw1095->print();
 
@@ -112,11 +111,15 @@ int main() {
     delete tw1093;
     delete tw1094;
     delete tw1095;
-
+    cout<<endl;
+    cout<<"检查内存共享"<<endl;
     Tensor<double>* ttw109 = Tensor<double>::rand({4, 6});
     Tensor<double>* ttw1092 = ttw109->select({"0", "2"});
+    cout<<"indexing share memory:"<<endl;
     std::cout << ttw109->access({0, 2}) << " " << ttw1092->access({0, 0}) << "\n";
     std::cout << &ttw109->access({0, 2}) << " " << &ttw1092->access({0, 0}) << "\n";
+    cout<<endl;
+    cout<<"slicing share memory:"<<endl;
     Tensor<double>* ttw1093 = ttw109->select({"1", ":"});
     std::cout << ttw109->access({1, 0}) << " " << ttw1093->access({0, 0}) << "\n";
     std::cout << &ttw109->access({1, 0}) << " " << &ttw1093->access({0, 0}) << "\n";
@@ -169,12 +172,14 @@ int main() {
     tlchy2->print();
 
     Tensor<int>* tlchy3 = Tensor<int>::ones({4, 4});
-    tlchy3->set_select({"0:1", "0:1"}, 7.0f);  // 前两行前两列 为 7
+    tlchy3->set_select({"0:1", "0:1"}, 7.0f);  // 前1行前1列 为 7
     tlchy3->print();
 
 
     Tensor<int>* tlchy1 = Tensor<int>::ones({4, 4});
     Tensor<int>* tlchy12 = tlchy1->select({"0:2", "0:2"});
+    cout<<"mutating share memory"<<endl;
+    cout<<"mutate in a tensor tlchy12,the origin tensor also changed"<<endl;
     tlchy12->set_select({":", "1"}, 5.0f);
     tlchy1->print();
     tlchy12->print();
@@ -192,10 +197,13 @@ int main() {
     tuzku->print();
 
     // 转置 二维矩阵 3,4 -> 4，3
+    cout<<"permute:"<<endl;
     Tensor<int> *tuzku2 = Tensor<int>::permute(tuzku, {1, 0});
     tuzku2->print();
+    cout<<"transpose"<<endl;
     Tensor<int> *tuzku3 = Tensor<int>::transpose(tuzku,{0,1});
     tuzku3->print();
+    cout<<"the three tensors share same memory:"<<endl;
     std::cout << tuzku->access({0, 1}) << " " << tuzku2->access({1, 0}) << " " << tuzku3->access({1, 0}) << "\n";
     std::cout << &tuzku->access({0, 1}) << " " << &tuzku2->access({1, 0}) << " " << &tuzku3->access({1, 0}) << "\n";
 
@@ -209,12 +217,13 @@ int main() {
     Tensor<float>* tod8r = Tensor<float>::rand({4, 3, 2}, 1.0);
     tod8r->print( );
 
-    // 维度变换 4*3*2 变换 2*2*2
+    // 维度变换 2*3*4 变换 4*3*2
     tod8r->reshape_({2, 3, 4});
     tod8r->print( );
-
+    cout<<"维度变换 2*3*4 变换 4*3*2"<<endl;
     Tensor<float>* tod8r2 = Tensor<float>::rand({4, 3, 2}, 1.0);
     Tensor<float>* tod8r1 = tod8r2->reshape({2, 3, 4});
+    cout<<"输出特定位置的元素，检查内存共享："<<endl;
     std::cout << tod8r2->access({1, 1, 1}) << " " << tod8r1->access({0, 2, 1}) << "\n";
     std::cout << &tod8r2->access({1, 1, 1}) << " " << &tod8r1->access({0, 2, 1}) << "\n";
     std::cout << tod8r2->access({1, 2, 1}) << " " << tod8r1->access({0, 2, 3}) << "\n";
