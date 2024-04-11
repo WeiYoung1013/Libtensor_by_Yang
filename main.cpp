@@ -19,7 +19,7 @@ int main() {
     //SetConsoleOutputCP(CP_UTF8);
 #endif // _WIN32
 
-    //初始化随机数种子
+    //初始化随机数种子,你好
     srand((unsigned)(100));
     int fi=1;
     // 1. 生成 2 * 2 张量
